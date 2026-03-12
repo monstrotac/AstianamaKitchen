@@ -1233,7 +1233,9 @@ async function authLogin(){
 }
 
 async function authLogout(){
-    await sb.auth.signOut();
+    try { await sb.auth.signOut(); } catch(e){ console.warn('signOut:', e); }
+    Object.keys(localStorage).filter(k=>k.startsWith('sb-')).forEach(k=>localStorage.removeItem(k));
+    wasAuthed = false;
     showAuthGate();
     await fetchContracts();
 }
