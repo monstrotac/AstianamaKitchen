@@ -399,9 +399,17 @@
         .ct-notes {
             font-family:'Share Tech Mono',monospace; font-size:0.74rem;
             color:var(--text); line-height:1.7; white-space:pre-wrap;
-            margin-bottom:12px; min-height:16px;
+            min-height:14px;
         }
         .ct-notes-empty { color:var(--dim); font-style:italic; }
+        .ct-phases { margin-bottom:12px; }
+        .ct-phase { margin-bottom:10px; }
+        .ct-phase-label {
+            font-family:'Orbitron',sans-serif; font-size:0.55rem; letter-spacing:0.2em;
+            color:rgba(220,20,60,0.55); text-transform:uppercase; margin-bottom:4px;
+        }
+        .ct-edit-panel { margin-bottom:8px; }
+        .ct-edit-panel .ct-phase-label { margin-top:10px; margin-bottom:3px; }
         .ct-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px; }
         .ct-status-sel {
             font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.12em;
@@ -494,6 +502,112 @@
         .ct-roll-breakdown {
             font-family:'Share Tech Mono',monospace; font-size:0.67rem; color:var(--dim); line-height:1.5;
         }
+
+        /* Contract detail modal */
+        .ct-modal-backdrop {
+            position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000;
+            display:flex; align-items:center; justify-content:center;
+            padding:16px; animation:fadein 0.2s ease;
+        }
+        .ct-modal {
+            background:#0e0208; border:1px solid rgba(220,20,60,0.4);
+            box-shadow:0 0 80px rgba(220,20,60,0.12),inset 0 0 60px rgba(0,0,0,0.4);
+            max-width:620px; width:100%; max-height:85vh; overflow-y:auto;
+            animation:ctModalIn 0.32s cubic-bezier(0.16,1,0.3,1); position:relative;
+            scrollbar-width:thin; scrollbar-color:rgba(220,20,60,0.2) transparent;
+        }
+        @keyframes ctModalIn {
+            from { opacity:0; transform:translateY(22px) scale(0.96); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .ct-modal-header {
+            padding:22px 22px 16px; border-bottom:1px solid rgba(220,20,60,0.15);
+            position:sticky; top:0; background:#0e0208; z-index:1;
+        }
+        .ct-modal-eyebrow {
+            font-family:'Orbitron',sans-serif; font-size:0.5rem; letter-spacing:0.35em;
+            color:rgba(220,20,60,0.45); text-transform:uppercase; margin-bottom:8px;
+        }
+        .ct-modal-name {
+            font-family:'Cinzel',serif; font-size:1.05rem; color:var(--crimson);
+            line-height:1.4; padding-right:60px;
+        }
+        .ct-modal-close {
+            position:absolute; top:18px; right:18px;
+            font-family:'Orbitron',sans-serif; font-size:0.52rem; letter-spacing:0.15em;
+            color:var(--dim); background:transparent; border:1px solid rgba(220,20,60,0.2);
+            padding:5px 11px; cursor:pointer; transition:all 0.2s;
+        }
+        .ct-modal-close:hover { border-color:var(--crimson); color:var(--crimson); }
+        .ct-modal-body { padding:20px 22px; display:flex; flex-direction:column; gap:18px; }
+        .ct-modal-fields {
+            display:flex; flex-wrap:wrap; gap:10px 28px;
+            padding-bottom:16px; border-bottom:1px solid rgba(220,20,60,0.08);
+        }
+        .ct-modal-field { display:flex; flex-direction:column; gap:3px; }
+        .ct-modal-flabel {
+            font-family:'Orbitron',sans-serif; font-size:0.48rem; letter-spacing:0.25em;
+            color:rgba(220,20,60,0.4); text-transform:uppercase;
+        }
+        .ct-modal-fval {
+            font-family:'Share Tech Mono',monospace; font-size:0.76rem; color:var(--text);
+        }
+        .ct-modal-phases { display:flex; flex-direction:column; gap:14px; }
+        .ct-modal-phase { }
+        .ct-modal-plabel {
+            font-family:'Orbitron',sans-serif; font-size:0.5rem; letter-spacing:0.22em;
+            color:rgba(220,20,60,0.5); text-transform:uppercase; margin-bottom:5px;
+        }
+        .ct-modal-ptext {
+            font-family:'Share Tech Mono',monospace; font-size:0.73rem;
+            color:var(--text); line-height:1.75; white-space:pre-wrap;
+        }
+        .ct-modal-pempty { color:var(--dim); font-style:italic; }
+        .ct-modal-rolls { border-top:1px solid rgba(220,20,60,0.08); padding-top:14px; }
+        .ct-modal-rolls-title {
+            font-family:'Orbitron',sans-serif; font-size:0.52rem; letter-spacing:0.25em;
+            color:rgba(220,20,60,0.45); text-transform:uppercase; margin-bottom:10px;
+        }
+        .ct-modal-roll {
+            padding:9px 12px; border:1px solid rgba(220,20,60,0.1);
+            background:rgba(0,0,0,0.3); margin-bottom:6px;
+        }
+        .ct-modal-roll:last-child { margin-bottom:0; }
+        .ct-modal-roll-top {
+            display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:4px;
+        }
+        .ct-modal-roll-bd {
+            font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--dim);
+        }
+
+        /* Feed card hover */
+        .comms-contract-card {
+            cursor:pointer; border:1px solid rgba(220,20,60,0.18);
+            border-left:3px solid var(--crimson); background:rgba(139,0,0,0.04);
+            padding:12px 14px; margin-bottom:8px; transition:all 0.22s; position:relative;
+            overflow:hidden;
+        }
+        .comms-contract-card::before {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(135deg,rgba(220,20,60,0.06),transparent);
+            opacity:0; transition:opacity 0.22s;
+        }
+        .comms-contract-card:hover { border-color:var(--crimson); background:rgba(139,0,0,0.09); box-shadow:0 0 18px rgba(220,20,60,0.1); }
+        .comms-contract-card:hover::before { opacity:1; }
+        .comms-contract-card:active { transform:scale(0.995); }
+
+        /* Contract roll result */
+        .ct-roll-result {
+            margin-top:12px; padding:14px; border:1px solid var(--border);
+            background:rgba(0,0,0,0.5); text-align:center;
+            display:none; flex-direction:column; align-items:center; gap:6px;
+            transition:all 0.4s;
+        }
+        .ct-roll-result.ok  { display:flex; border-color:var(--crimson); box-shadow:0 0 18px rgba(220,20,60,0.15),inset 0 0 18px rgba(220,20,60,0.04); }
+        .ct-roll-result.no  { display:flex; border-color:#333; }
+        .ct-roll-result.n20 { display:flex; border-color:var(--bright-red); animation:n20pulse 1.1s ease-in-out infinite; }
+        .ct-roll-result.n1  { display:flex; border-color:#3a1515; }
+        .ct-roll-result.rolling { display:flex; border-color:rgba(220,20,60,0.2); }
 
         /* Completion form */
         .ct-close-form {
@@ -647,6 +761,11 @@
             <div class="panel-title">Active Contracts — Live Feed</div>
             <div id="comms-active-list"><div class="ct-empty">NO ACTIVE CONTRACTS</div></div>
         </div>
+
+        <div class="panel">
+            <div class="panel-title">Completed Contracts — The Harvest Record</div>
+            <div id="comms-complete-list"><div class="ct-empty">NO COMPLETED CONTRACTS</div></div>
+        </div>
     </div>
 
     <!-- ══════════════ ROLLER ══════════════ -->
@@ -661,11 +780,14 @@
                         <select class="sel" id="skill-sel" onchange="updateMods()">
                             <option value="8">Assassination — The Harvest (+8)</option>
                             <option value="8">Blade Mastery — Pagieza's Edge (+8)</option>
+                            <option value="8">Use of the Force (+8)</option>
                             <option value="7">Stealth & Infiltration (+7)</option>
+                            <option value="7">Dexterity & Acrobatics (+7)</option>
+                            <option value="7">Investigation & Intel Gathering (+7)</option>
                             <option value="6">Deception & Disguise (+6)</option>
                             <option value="6">Force Intuition (+6)</option>
                             <option value="5">Escape & Pursuit (+5)</option>
-                            <option value="7">Investigation & Intel Gathering (+7)</option>
+                            <option value="2">Athletics (+2)</option>
                             <option value="4">Unarmed Engagement (+4)</option>
                         </select>
                     </div>
@@ -770,6 +892,19 @@
                     </select>
                 </div>
                 <div>
+                    <label class="field-label">Requested Method</label>
+                    <select class="sel" id="ct-method">
+                        <option value="Unspecified">Unspecified</option>
+                        <option value="Silent Kill">Silent Kill</option>
+                        <option value="Public Elimination">Public Elimination</option>
+                        <option value="Blackmail">Blackmail</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label">Requested Weapon</label>
+                    <input class="ct-input" id="ct-weapon" type="text" placeholder="e.g. Vibroblade, Poison, Force…" autocomplete="off">
+                </div>
+                <div>
                     <label class="field-label">Status</label>
                     <select class="sel" id="ct-status">
                         <option value="active">Active</option>
@@ -779,8 +914,20 @@
                     </select>
                 </div>
                 <div class="full">
-                    <label class="field-label">Intel &amp; Notes</label>
-                    <textarea class="ct-textarea" id="ct-notes" placeholder="Known location, habits, guard detail, method preference, client details…"></textarea>
+                    <label class="field-label">◆ Briefing</label>
+                    <textarea class="ct-textarea" id="ct-notes-briefing" placeholder="Client identity, stated objective, terms, context…"></textarea>
+                </div>
+                <div class="full">
+                    <label class="field-label">◆ I — Information Gathering</label>
+                    <textarea class="ct-textarea" id="ct-notes-intel" placeholder="Known location, habits, guard detail, client details…"></textarea>
+                </div>
+                <div class="full">
+                    <label class="field-label">◆ II — Execution</label>
+                    <textarea class="ct-textarea" id="ct-notes-exec" placeholder="Method, approach, timing, tools…"></textarea>
+                </div>
+                <div class="full">
+                    <label class="field-label">◆ III — Exfiltration</label>
+                    <textarea class="ct-textarea" id="ct-notes-exfil" placeholder="Escape route, cover identity, contingencies…"></textarea>
                 </div>
                 <button class="ct-add-btn" onclick="addContract()">◆ Open Contract ◆</button>
             </div>
@@ -824,6 +971,14 @@
             <div class="codex-entry">
                 <div class="c-num">ARTICLE VII</div>
                 <div class="c-rule">The device is prehistoric and self-made. It cannot be traced. When the channel closes, it is as though the orchard never existed and no gardener ever walked its rows.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE VIII</div>
+                <div class="c-rule">The blade does not weigh innocence. Whether the fruit is rotten or unblemished, once it is marked for harvest, the season has been decided. Guilt is the client's concern — not the gardener's. Pagieza does not ask. Pagieza does not deliberate. The blade falls where it is pointed.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE IX</div>
+                <div class="c-rule">Any eye that witnesses the blade becomes part of the harvest. There are no exceptions — no mercy extended to the unfortunate, no grace for those who simply stood too close. Witnesses are weeds. They are dealt with before the gardener leaves the soil. To leave one standing is to plant the seed of one's own unraveling.</div>
             </div>
         </div>
 
@@ -1039,7 +1194,9 @@ const SEED = [{
     classification: 'Velocity Inhibitor',
     priority: 'Standard',
     status: 'active',
-    notes: 'Current open contract. Method and tool pending client instruction.',
+    notes_intel: 'Current open contract. Method and tool pending client instruction.',
+    notes_exec: '',
+    notes_exfil: '',
     created: new Date().toLocaleDateString()
 }];
 
@@ -1164,20 +1321,30 @@ function saveContracts(list){
 }
 
 function addContract(){
-    const name  = document.getElementById('ct-name').value.trim();
-    const cls   = document.getElementById('ct-class').value.trim();
-    const prio  = document.getElementById('ct-priority').value;
-    const stat  = document.getElementById('ct-status').value;
-    const notes = document.getElementById('ct-notes').value.trim();
+    const name        = document.getElementById('ct-name').value.trim();
+    const cls         = document.getElementById('ct-class').value.trim();
+    const prio        = document.getElementById('ct-priority').value;
+    const stat        = document.getElementById('ct-status').value;
+    const notes_briefing = document.getElementById('ct-notes-briefing').value.trim();
+    const notes_intel    = document.getElementById('ct-notes-intel').value.trim();
+    const notes_exec     = document.getElementById('ct-notes-exec').value.trim();
+    const notes_exfil    = document.getElementById('ct-notes-exfil').value.trim();
+    const method         = document.getElementById('ct-method').value;
+    const weapon         = document.getElementById('ct-weapon').value.trim();
     if(!name) { document.getElementById('ct-name').focus(); return; }
     const list = loadContracts();
-    list.unshift({ id:'ct-'+Date.now(), name, classification:cls||'—', priority:prio, status:stat, notes, created:new Date().toLocaleDateString() });
+    list.unshift({ id:'ct-'+Date.now(), name, classification:cls||'—', priority:prio, status:stat, method, weapon, notes_briefing, notes_intel, notes_exec, notes_exfil, created:new Date().toLocaleDateString() });
     saveContracts(list);
     document.getElementById('ct-name').value='';
     document.getElementById('ct-class').value='';
-    document.getElementById('ct-notes').value='';
+    document.getElementById('ct-notes-briefing').value='';
+    document.getElementById('ct-notes-intel').value='';
+    document.getElementById('ct-notes-exec').value='';
+    document.getElementById('ct-notes-exfil').value='';
     document.getElementById('ct-status').value='active';
     document.getElementById('ct-priority').value='Standard';
+    document.getElementById('ct-method').value='Unspecified';
+    document.getElementById('ct-weapon').value='';
     renderContracts();
 }
 
@@ -1193,16 +1360,47 @@ function changeStatus(id, status){
     if(c){ c.status=status; saveContracts(list); renderContracts(); }
 }
 
+function changePriority(id, priority){
+    const list = loadContracts();
+    const c = list.find(x=>x.id===id);
+    if(c){ c.priority=priority; saveContracts(list); renderContracts(); }
+}
+
+function changeMethod(id, method){
+    const list = loadContracts();
+    const c = list.find(x=>x.id===id);
+    if(c){ c.method=method; saveContracts(list); renderContracts(); }
+}
+
+function updateContractDC(id){
+    const sel = document.getElementById('rof-dc-sel-'+id);
+    const inp = document.getElementById('rof-dc-'+id);
+    if(sel.value==='custom'){
+        inp.style.display='block'; inp.focus();
+    } else {
+        inp.style.display='none'; inp.value=sel.value;
+    }
+}
+
 function openNoteEdit(id){
-    const area = document.getElementById('ct-edit-'+id);
-    const btn  = document.getElementById('ct-notebtn-'+id);
-    if(area.style.display==='none'||!area.style.display){
-        area.style.display='block'; area.focus();
+    const panel = document.getElementById('ct-edit-'+id);
+    const view  = document.getElementById('ct-view-'+id);
+    const btn   = document.getElementById('ct-notebtn-'+id);
+    if(panel.style.display==='none'||!panel.style.display){
+        panel.style.display='block'; view.style.display='none';
+        document.getElementById('ct-edit-intel-'+id).focus();
         btn.textContent='◆ Save Notes';
     } else {
         const list = loadContracts();
         const c = list.find(x=>x.id===id);
-        if(c){ c.notes=area.value; saveContracts(list); renderContracts(); }
+        if(c){
+            c.weapon          = document.getElementById('ct-edit-weapon-'+id).value.trim();
+            c.notes_briefing  = document.getElementById('ct-edit-briefing-'+id).value;
+            c.notes_intel     = document.getElementById('ct-edit-intel-'+id).value;
+            c.notes_exec      = document.getElementById('ct-edit-exec-'+id).value;
+            c.notes_exfil     = document.getElementById('ct-edit-exfil-'+id).value;
+            saveContracts(list); renderContracts();
+        }
     }
 }
 
@@ -1242,11 +1440,13 @@ const STATUS_LABELS = { active:'Active', pending:'Pending', complete:'Complete',
 function renderContracts(){
     const list = loadContracts();
     const el   = document.getElementById('ct-list');
-    const feed = document.getElementById('comms-active-list');
+    const feed     = document.getElementById('comms-active-list');
+    const complete = document.getElementById('comms-complete-list');
 
     if(!list.length){
         el.innerHTML='<div class="ct-empty">THE REGISTRY IS EMPTY — NO CONTRACTS LOGGED</div>';
         feed.innerHTML='<div class="ct-empty">NO ACTIVE CONTRACTS</div>';
+        complete.innerHTML='<div class="ct-empty">NO COMPLETED CONTRACTS</div>';
         return;
     }
 
@@ -1264,12 +1464,42 @@ function renderContracts(){
             <div class="ct-body">
                 <div class="ct-meta-row">
                     <span><b>Classification:</b> ${c.classification}</span>
+                    <span><b>Method:</b> ${c.method||'Unspecified'}</span>
+                    ${c.weapon ? `<span><b>Weapon:</b> ${c.weapon}</span>` : ''}
                     <span><b>Logged:</b> ${c.created}</span>
                     ${c.closed_date ? `<span><b>Closed:</b> ${c.closed_date}</span>` : ''}
                 </div>
 
-                <div class="ct-notes ${c.notes?'':'ct-notes-empty'}">${c.notes||'No intelligence on file.'}</div>
-                <textarea class="ct-edit-area" id="ct-edit-${c.id}">${c.notes||''}</textarea>
+                <div class="ct-phases" id="ct-view-${c.id}">
+                    <div class="ct-phase">
+                        <div class="ct-phase-label">◆ Briefing</div>
+                        <div class="ct-notes ${c.notes_briefing?'':'ct-notes-empty'}">${c.notes_briefing||'No briefing logged.'}</div>
+                    </div>
+                    <div class="ct-phase">
+                        <div class="ct-phase-label">◆ I — Information Gathering</div>
+                        <div class="ct-notes ${(c.notes_intel||c.notes)?'':'ct-notes-empty'}">${c.notes_intel||c.notes||'No intelligence logged.'}</div>
+                    </div>
+                    <div class="ct-phase">
+                        <div class="ct-phase-label">◆ II — Execution</div>
+                        <div class="ct-notes ${c.notes_exec?'':'ct-notes-empty'}">${c.notes_exec||'No execution plan logged.'}</div>
+                    </div>
+                    <div class="ct-phase">
+                        <div class="ct-phase-label">◆ III — Exfiltration</div>
+                        <div class="ct-notes ${c.notes_exfil?'':'ct-notes-empty'}">${c.notes_exfil||'No exfiltration plan logged.'}</div>
+                    </div>
+                </div>
+                <div class="ct-edit-panel" id="ct-edit-${c.id}" style="display:none">
+                    <div class="ct-phase-label" style="margin-top:0">Requested Weapon</div>
+                    <input class="ct-close-input" style="display:block;width:100%;margin-bottom:6px" id="ct-edit-weapon-${c.id}" type="text" placeholder="e.g. Vibroblade, Poison, Force…" value="${c.weapon||''}">
+                    <div class="ct-phase-label">◆ Briefing</div>
+                    <textarea class="ct-edit-area" style="display:block" id="ct-edit-briefing-${c.id}">${c.notes_briefing||''}</textarea>
+                    <div class="ct-phase-label">◆ I — Information Gathering</div>
+                    <textarea class="ct-edit-area" style="display:block" id="ct-edit-intel-${c.id}">${c.notes_intel||c.notes||''}</textarea>
+                    <div class="ct-phase-label">◆ II — Execution</div>
+                    <textarea class="ct-edit-area" style="display:block" id="ct-edit-exec-${c.id}">${c.notes_exec||''}</textarea>
+                    <div class="ct-phase-label">◆ III — Exfiltration</div>
+                    <textarea class="ct-edit-area" style="display:block" id="ct-edit-exfil-${c.id}">${c.notes_exfil||''}</textarea>
+                </div>
 
                 ${c.status==='complete' && c.closed_approach ? `
                 <div class="ct-closed-record">
@@ -1338,25 +1568,38 @@ function renderContracts(){
                             <select class="ct-close-select" id="rof-skill-${c.id}">
                                 <option value="8" data-name="Assassination">Assassination (+8)</option>
                                 <option value="8" data-name="Blade Mastery">Blade Mastery (+8)</option>
+                                <option value="8" data-name="Use of the Force">Use of the Force (+8)</option>
                                 <option value="7" data-name="Stealth & Infiltration">Stealth &amp; Infiltration (+7)</option>
+                                <option value="7" data-name="Dexterity & Acrobatics">Dexterity &amp; Acrobatics (+7)</option>
+                                <option value="7" data-name="Investigation & Intel">Investigation &amp; Intel (+7)</option>
                                 <option value="6" data-name="Deception & Disguise">Deception &amp; Disguise (+6)</option>
                                 <option value="6" data-name="Force Intuition">Force Intuition (+6)</option>
                                 <option value="5" data-name="Escape & Pursuit">Escape &amp; Pursuit (+5)</option>
-                                <option value="7" data-name="Investigation & Intel">Investigation &amp; Intel (+7)</option>
+                                <option value="2" data-name="Athletics">Athletics (+2)</option>
                                 <option value="4" data-name="Unarmed Engagement">Unarmed Engagement (+4)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="ct-close-label">DC</label>
-                            <input class="ct-close-input" id="rof-dc-${c.id}" type="number" min="1" max="40" value="12">
+                            <label class="ct-close-label">Mission Difficulty</label>
+                            <select class="ct-close-select" id="rof-dc-sel-${c.id}" onchange="updateContractDC('${c.id}')">
+                                <option value="8">Routine — DC 8</option>
+                                <option value="12" selected>Somewhat Difficult — DC 12</option>
+                                <option value="15">Difficult — DC 15</option>
+                                <option value="18">Very Difficult — DC 18</option>
+                                <option value="22">Extremely Difficult — DC 22</option>
+                                <option value="25">Near Impossible — DC 25</option>
+                                <option value="custom">Custom DC</option>
+                            </select>
+                            <input class="ct-close-input" id="rof-dc-${c.id}" type="number" min="1" max="40" value="12" style="display:none;margin-top:4px">
                         </div>
                         <div class="full">
                             <label class="ct-close-label">Natural Roll &nbsp;<span style="color:var(--dim);font-family:Share Tech Mono,monospace;font-size:0.65rem;letter-spacing:0">(enter manually or click Roll)</span></label>
                             <div style="display:flex;gap:8px;align-items:center;">
                                 <input class="ct-close-input" id="rof-nat-${c.id}" type="number" min="1" max="20" placeholder="1 – 20" style="flex:1">
-                                <button class="ct-action-btn" onclick="autoRollContract('${c.id}')" style="flex-shrink:0;padding:8px 14px;font-size:0.9rem;" title="Roll d20">d20</button>
+                                <button class="ct-action-btn" onclick="rollForContract('${c.id}')" style="flex-shrink:0;padding:8px 14px;font-size:0.9rem;" title="Roll d20">d20</button>
                             </div>
                         </div>
+                        <div class="ct-roll-result" id="rof-result-${c.id}"></div>
                         <button class="ct-save-close-btn" onclick="attachRoll('${c.id}')">◆ Attach Roll to Contract ◆</button>
                     </div>
                 </div>
@@ -1366,6 +1609,17 @@ function renderContracts(){
                         <option value="active"      ${c.status==='active'      ?'selected':''}>● Active</option>
                         <option value="pending"     ${c.status==='pending'     ?'selected':''}>● Pending</option>
                         <option value="compromised" ${c.status==='compromised' ?'selected':''}>● Compromised</option>
+                    </select>
+                    <select class="ct-status-sel" onchange="changePriority('${c.id}',this.value);this.blur()">
+                        <option value="Standard" ${c.priority==='Standard' ?'selected':''}>◈ Standard</option>
+                        <option value="Priority" ${c.priority==='Priority' ?'selected':''}>◈ Priority</option>
+                        <option value="Critical" ${c.priority==='Critical' ?'selected':''}>◈ Critical</option>
+                    </select>
+                    <select class="ct-status-sel" onchange="changeMethod('${c.id}',this.value);this.blur()">
+                        <option value="Unspecified"       ${(c.method||'Unspecified')==='Unspecified'       ?'selected':''}>◇ Unspecified</option>
+                        <option value="Silent Kill"       ${c.method==='Silent Kill'       ?'selected':''}>◇ Silent Kill</option>
+                        <option value="Public Elimination"${c.method==='Public Elimination'?'selected':''}>◇ Public Elimination</option>
+                        <option value="Blackmail"         ${c.method==='Blackmail'         ?'selected':''}>◇ Blackmail</option>
                     </select>
                     <button class="ct-action-btn" id="ct-notebtn-${c.id}" onclick="openNoteEdit('${c.id}')">◆ Edit Notes</button>
                     <button class="ct-action-btn" onclick="toggleRollForm('${c.id}')">◆ Log Roll</button>
@@ -1381,10 +1635,22 @@ function renderContracts(){
         feed.innerHTML='<div class="ct-empty">NO ACTIVE CONTRACTS</div>';
     } else {
         feed.innerHTML = active.map(c=>`
-            <div class="phrase" style="cursor:default; border-left-color:var(--crimson); margin-bottom:8px;">
-                <div class="p-label">◆ Target — Status: Active</div>
+            <div class="comms-contract-card" onclick="openContractModal('${c.id}')">
+                <div class="p-label">◆ Target — Status: Active &nbsp;·&nbsp; ${c.priority}${c.method&&c.method!=='Unspecified'?' &nbsp;·&nbsp; '+c.method:''}</div>
                 <div class="p-text">${c.name}</div>
-                <div class="p-meta">Classification: ${c.classification} &nbsp;·&nbsp; Priority: ${c.priority}</div>
+                <div class="p-meta">Classification: ${c.classification}${c.weapon?' &nbsp;·&nbsp; Weapon: '+c.weapon:''} &nbsp;·&nbsp; <span style="color:rgba(220,20,60,0.5);font-size:0.65rem;letter-spacing:0.1em">TAP FOR DOSSIER ▶</span></div>
+            </div>`).join('');
+    }
+
+    const done = list.filter(c=>c.status==='complete');
+    if(!done.length){
+        complete.innerHTML='<div class="ct-empty">NO COMPLETED CONTRACTS</div>';
+    } else {
+        complete.innerHTML = done.map(c=>`
+            <div class="comms-contract-card" onclick="openContractModal('${c.id}')" style="border-left-color:#2a6630">
+                <div class="p-label">◆ Harvest Sealed &nbsp;·&nbsp; ${c.priority}${c.method&&c.method!=='Unspecified'?' &nbsp;·&nbsp; '+c.method:''}</div>
+                <div class="p-text">${c.name}</div>
+                <div class="p-meta">Classification: ${c.classification}${c.closed_date?' &nbsp;·&nbsp; Closed: '+c.closed_date:''} &nbsp;·&nbsp; <span style="color:rgba(220,20,60,0.5);font-size:0.65rem;letter-spacing:0.1em">TAP FOR DOSSIER ▶</span></div>
             </div>`).join('');
     }
 }
@@ -1440,8 +1706,117 @@ function toggleRolls(id){
     chev.style.transform = list.classList.contains('open') ? 'rotate(90deg)' : '';
 }
 
-function autoRollContract(id){
-    document.getElementById('rof-nat-'+id).value = Math.floor(Math.random()*20)+1;
+function openContractModal(id){
+    const list = loadContracts();
+    const c = list.find(x=>x.id===id);
+    if(!c) return;
+    const phases = [
+        { label:'◆ Briefing',                   text: c.notes_briefing||'' },
+        { label:'◆ I — Information Gathering',  text: c.notes_intel||c.notes||'' },
+        { label:'◆ II — Execution',             text: c.notes_exec||'' },
+        { label:'◆ III — Exfiltration',         text: c.notes_exfil||'' },
+    ];
+    const fields = [
+        { label:'Priority',       val: c.priority||'—' },
+        { label:'Status',         val: STATUS_LABELS[c.status]||c.status||'—' },
+        { label:'Method',         val: c.method||'Unspecified' },
+        ...(c.weapon ? [{ label:'Weapon', val: c.weapon }] : []),
+        { label:'Classification', val: c.classification||'—' },
+        { label:'Logged',         val: c.created||'—' },
+        ...(c.closed_date ? [{ label:'Closed', val: c.closed_date }] : []),
+    ];
+    const rollsHTML = (c.rolls&&c.rolls.length) ? `
+        <div class="ct-modal-rolls">
+            <div class="ct-modal-rolls-title">◆ Mission Roll Log — ${c.rolls.length} Recorded</div>
+            ${c.rolls.map(r=>`
+            <div class="ct-modal-roll">
+                <div class="ct-modal-roll-top">
+                    <span class="ct-roll-badge ${r.outcome}">${r.outcome==='nat20'?'CRIT SUCCESS':r.outcome==='nat1'?'CRIT FAIL':r.outcome.toUpperCase()}</span>
+                    <span style="font-family:'Cinzel',serif;font-size:0.8rem;color:var(--text);font-style:italic">${r.situation}</span>
+                    <span style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--dim);margin-left:auto">${r.date}</span>
+                </div>
+                <div class="ct-modal-roll-bd">${r.skill} · DC ${r.dc} · Natural: ${r.natural} + Mod: +${r.modifier} = Total: ${r.total}</div>
+            </div>`).join('')}
+        </div>` : '';
+    const backdrop = document.createElement('div');
+    backdrop.className = 'ct-modal-backdrop';
+    backdrop.id = 'ct-modal-backdrop';
+    backdrop.innerHTML = `
+        <div class="ct-modal" onclick="event.stopPropagation()">
+            <div class="ct-modal-header">
+                <div class="ct-modal-eyebrow">◆ Contract Dossier — Eyes Only</div>
+                <div class="ct-modal-name">${c.name}</div>
+                <button class="ct-modal-close" onclick="closeContractModal()">✕ CLOSE</button>
+            </div>
+            <div class="ct-modal-body">
+                <div class="ct-modal-fields">
+                    ${fields.map(f=>`<div class="ct-modal-field"><div class="ct-modal-flabel">${f.label}</div><div class="ct-modal-fval">${f.val}</div></div>`).join('')}
+                </div>
+                <div class="ct-modal-phases">
+                    ${phases.map(p=>`
+                    <div class="ct-modal-phase">
+                        <div class="ct-modal-plabel">${p.label}</div>
+                        <div class="ct-modal-ptext ${p.text?'':'ct-modal-pempty'}">${p.text||'Nothing logged.'}</div>
+                    </div>`).join('')}
+                </div>
+                ${rollsHTML}
+            </div>
+        </div>`;
+    backdrop.addEventListener('click', closeContractModal);
+    document.body.appendChild(backdrop);
+}
+
+function closeContractModal(){
+    const el = document.getElementById('ct-modal-backdrop');
+    if(!el) return;
+    el.style.animation = 'none';
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.18s ease';
+    setTimeout(()=>el.remove(), 180);
+}
+
+const contractRolling = {};
+function rollForContract(id){
+    if(contractRolling[id]) return;
+    contractRolling[id] = true;
+    const natInp  = document.getElementById('rof-nat-'+id);
+    const skillEl = document.getElementById('rof-skill-'+id);
+    const dcSel   = document.getElementById('rof-dc-sel-'+id);
+    const dcInp   = document.getElementById('rof-dc-'+id);
+    const resEl   = document.getElementById('rof-result-'+id);
+    const bonus   = parseInt(skillEl.value);
+    const dc      = dcSel.value==='custom' ? parseInt(dcInp.value)||12 : parseInt(dcSel.value)||12;
+    const modifier = bonus + 3;
+    resEl.className = 'ct-roll-result rolling';
+    resEl.innerHTML = '<span class="r-idle">ROLLING…</span>';
+    let count = 0, max = 22;
+    const iv = setInterval(()=>{
+        natInp.value = Math.floor(Math.random()*20)+1;
+        count++;
+        if(count >= max){
+            clearInterval(iv);
+            const nat   = Math.floor(Math.random()*20)+1;
+            natInp.value = nat;
+            const total = nat + modifier;
+            const bd    = `Natural: ${nat}  +  Modifier: +${modifier}  =  Total: ${total}  vs  DC ${dc}`;
+            let oc, oc2, pc, fl;
+            if(nat===20){
+                oc='CRITICAL SUCCESS — THE BLADE SINGS'; oc2='n20'; pc='n20'; fl=pick(N20);
+            } else if(nat===1){
+                oc='CRITICAL FAILURE — THE THORN TURNS'; oc2='n1'; pc='no'; fl=pick(N1);
+            } else if(total>=dc){
+                oc='SUCCESS — THE HARVEST IS TAKEN'; oc2='ok'; pc='ok'; fl=pick(SF);
+            } else {
+                oc='FAILURE — THE GARDEN HOLDS'; oc2='no'; pc='no'; fl=pick(FF);
+            }
+            resEl.className = 'ct-roll-result '+pc;
+            resEl.innerHTML = `
+                <div class="r-outcome ${oc2}">${oc}</div>
+                <div class="r-break">${bd}</div>
+                <div class="r-flavor">${fl}</div>`;
+            contractRolling[id] = false;
+        }
+    }, 55);
 }
 
 function attachRoll(id){
@@ -1449,7 +1824,8 @@ function attachRoll(id){
     const skillEl = document.getElementById('rof-skill-'+id);
     const bonus   = parseInt(skillEl.value);
     const skill   = skillEl.options[skillEl.selectedIndex].dataset.name;
-    const dc      = parseInt(document.getElementById('rof-dc-'+id).value)||12;
+    const dcSel   = document.getElementById('rof-dc-sel-'+id);
+    const dc      = dcSel.value==='custom' ? parseInt(document.getElementById('rof-dc-'+id).value)||12 : parseInt(dcSel.value)||12;
     const nat     = parseInt(document.getElementById('rof-nat-'+id).value);
     if(!sit){ document.getElementById('rof-sit-'+id).focus(); return; }
     if(!nat||nat<1||nat>20){ document.getElementById('rof-nat-'+id).focus(); return; }
