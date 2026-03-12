@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- background -->
+  <rect width="32" height="32" rx="3" fill="#06000a"/>
+
+  <!-- blade body -->
+  <polygon points="16,2 18.2,14 16,30 13.8,14" fill="#8b0000"/>
+
+  <!-- blade edge highlight -->
+  <polygon points="16,2 16.7,13 16,24 15.8,13" fill="#dc143c" opacity="0.7"/>
+
+  <!-- crossguard -->
+  <rect x="8" y="13.5" width="16" height="3" rx="1.5" fill="#4a0000"/>
+  <!-- crossguard rim highlight -->
+  <rect x="8" y="13.5" width="16" height="1" rx="1" fill="#7a0000" opacity="0.6"/>
+
+  <!-- grip -->
+  <rect x="14.5" y="20.5" width="3" height="8" rx="1.5" fill="#2e0000"/>
+
+  <!-- pommel -->
+  <circle cx="16" cy="30" r="2" fill="#4a0000"/>
+  <circle cx="16" cy="30" r="1" fill="#8b0000" opacity="0.5"/>
+</svg>
