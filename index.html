@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAGIEZA — The Poison Blade</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;900&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --crimson: #dc143c;
+            --dark-red: #8b0000;
+            --bright-red: #ff2244;
+            --glow: rgba(220,20,60,0.6);
+            --bg: #06000a;
+            --panel: rgba(8,0,14,0.88);
+            --text: #f0e6d3;
+            --dim: #907060;
+            --mono: #ff8866;
+            --border: rgba(220,20,60,0.3);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Cinzel', serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        /* Scanlines */
+        body::after {
+            content:'';
+            position:fixed; inset:0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
+            pointer-events:none;
+            z-index:200;
+        }
+        /* Vignette */
+        body::before {
+            content:'';
+            position:fixed; inset:0;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+            pointer-events:none;
+            z-index:1;
+        }
+        #starfield { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+        .container { position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:20px; }
+
+        /* ── HEADER ── */
+        header { text-align:center; padding:44px 20px 28px; }
+        .sigil {
+            width:80px; height:80px; margin:0 auto 18px;
+            animation: sigil-pulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px var(--crimson));
+        }
+        @keyframes sigil-pulse {
+            0%,100% { filter:drop-shadow(0 0 8px var(--crimson)) drop-shadow(0 0 22px rgba(220,20,60,0.35)); }
+            50%      { filter:drop-shadow(0 0 18px var(--crimson)) drop-shadow(0 0 44px rgba(220,20,60,0.6)); }
+        }
+        .title {
+            font-family:'Cinzel Decorative',serif;
+            font-size: clamp(2.6rem,6vw,5.2rem);
+            font-weight:900;
+            letter-spacing:0.35em;
+            color: var(--crimson);
+            text-shadow: 0 0 20px var(--crimson), 0 0 50px rgba(220,20,60,0.4), 0 0 100px rgba(220,20,60,0.15);
+            animation: flicker 7s ease-in-out infinite;
+            position:relative;
+        }
+        @keyframes flicker {
+            0%,93%,95%,97%,100% { opacity:1; }
+            94%,96% { opacity:0.82; }
+        }
+        .title::before, .title::after {
+            content: attr(data-text);
+            position:absolute; top:0; left:0; width:100%; height:100%;
+            pointer-events:none;
+        }
+        .title::before {
+            color:#ff0040;
+            clip-path: polygon(0 0,100% 0,100% 35%,0 35%);
+            animation: glitch-a 6s infinite;
+        }
+        .title::after {
+            color:#003fff;
+            clip-path: polygon(0 65%,100% 65%,100% 100%,0 100%);
+            animation: glitch-b 6s infinite;
+        }
+        @keyframes glitch-a {
+            0%,91%,95%,100% { transform:translate(0); opacity:0; }
+            92% { transform:translate(-3px,1px); opacity:0.7; }
+            93% { transform:translate(3px,-1px); opacity:0.5; }
+            94% { transform:translate(0); opacity:0; }
+        }
+        @keyframes glitch-b {
+            0%,91%,95%,100% { transform:translate(0); opacity:0; }
+            92% { transform:translate(3px,-1px); opacity:0.5; }
+            93% { transform:translate(-3px,1px); opacity:0.4; }
+            94% { transform:translate(0); opacity:0; }
+        }
+        .subtitle {
+            font-family:'Share Tech Mono',monospace;
+            font-size:0.78rem; color:var(--dim);
+            letter-spacing:0.28em; margin-top:8px; text-transform:uppercase;
+        }
+        .tagline {
+            font-family:'Cinzel',serif; font-size:0.95rem;
+            color:rgba(220,20,60,0.65); letter-spacing:0.12em;
+            margin-top:10px; font-style:italic;
+        }
+        .divider {
+            width:75%; max-width:580px; height:1px;
+            background:linear-gradient(90deg,transparent,var(--crimson),transparent);
+            margin:22px auto; position:relative;
+        }
+        .divider::before,.divider::after {
+            content:'◆'; position:absolute; top:50%; transform:translateY(-50%);
+            color:var(--crimson); font-size:0.55rem;
+        }
+        .divider::before { left:-8px; }
+        .divider::after  { right:-8px; }
+
+        /* ── TABS ── */
+        .tabs { display:flex; justify-content:center; gap:3px; margin-bottom:28px; flex-wrap:wrap; }
+        .tab-btn {
+            font-family:'Orbitron',sans-serif; font-size:0.7rem; letter-spacing:0.2em;
+            padding:10px 22px; background:transparent; border:1px solid var(--border);
+            color:var(--dim); cursor:pointer; text-transform:uppercase; transition:all 0.3s;
+            position:relative; overflow:hidden;
+        }
+        .tab-btn::before {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(135deg,rgba(220,20,60,0.1),transparent);
+            opacity:0; transition:opacity 0.3s;
+        }
+        .tab-btn:hover::before,.tab-btn.active::before { opacity:1; }
+        .tab-btn:hover { color:var(--text); border-color:var(--crimson); }
+        .tab-btn.active { color:var(--crimson); border-color:var(--crimson); box-shadow:0 0 10px rgba(220,20,60,0.25); }
+        .tab-pane { display:none; }
+        .tab-pane.active { display:block; animation:fadein 0.4s ease; }
+        @keyframes fadein { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── PANEL ── */
+        .panel {
+            background:var(--panel); border:1px solid var(--border);
+            padding:22px; margin-bottom:18px; position:relative;
+            backdrop-filter:blur(4px);
+        }
+        .panel::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:1px;
+            background:linear-gradient(90deg,transparent,var(--crimson),transparent);
+        }
+        .panel-title {
+            font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:0.3em;
+            color:var(--crimson); text-transform:uppercase; margin-bottom:18px;
+            display:flex; align-items:center; gap:12px;
+        }
+        .panel-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent); }
+
+        .energy-line {
+            height:1px; background:linear-gradient(90deg,transparent,var(--crimson),transparent);
+            margin:10px 0; animation:energy 3s ease-in-out infinite;
+        }
+        @keyframes energy { 0%,100%{opacity:0.35;transform:scaleX(0.8)} 50%{opacity:1;transform:scaleX(1)} }
+
+        /* ── COMMS ── */
+        .comm-status {
+            display:flex; align-items:center; gap:8px; margin-bottom:16px;
+            font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--dim);
+        }
+        .dot { width:7px; height:7px; border-radius:50%; background:var(--crimson); animation:blink 1.4s ease-in-out infinite; }
+        @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 6px var(--crimson)} 50%{opacity:0.25;box-shadow:none} }
+
+        .phrase-list { display:flex; flex-direction:column; gap:10px; }
+        .phrase {
+            border:1px solid rgba(220,20,60,0.18); border-left:3px solid var(--dark-red);
+            padding:13px 15px; cursor:pointer; transition:all 0.25s;
+            background:rgba(139,0,0,0.04); position:relative; overflow:hidden;
+        }
+        .phrase::after {
+            content:''; position:absolute; top:50%; right:14px; transform:translateY(-50%);
+            width:6px; height:6px; border-top:1px solid var(--crimson); border-right:1px solid var(--crimson);
+            transform:translateY(-50%) rotate(45deg); opacity:0; transition:opacity 0.2s;
+        }
+        .phrase:hover { border-left-color:var(--crimson); background:rgba(139,0,0,0.1); box-shadow:-4px 0 14px rgba(220,20,60,0.18); }
+        .phrase:hover::after { opacity:1; }
+        .phrase.tx { border-left-color:var(--bright-red); background:rgba(139,0,0,0.18); animation:txpulse 0.5s ease; }
+        @keyframes txpulse { 0%{box-shadow:0 0 0 rgba(220,20,60,0)} 50%{box-shadow:0 0 22px rgba(220,20,60,0.4)} 100%{box-shadow:0 0 4px rgba(220,20,60,0.1)} }
+        .p-label { font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.2em; color:rgba(220,20,60,0.65); text-transform:uppercase; margin-bottom:5px; }
+        .p-text  { font-family:'Cinzel',serif; font-size:0.88rem; color:var(--text); line-height:1.65; font-style:italic; }
+        .p-meta  { font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:var(--dim); margin-top:5px; }
+
+        .terminal {
+            background:rgba(0,0,0,0.65); border:1px solid rgba(220,20,60,0.2);
+            padding:14px 16px; font-family:'Share Tech Mono',monospace; font-size:0.78rem;
+            color:var(--mono); min-height:90px; margin-top:14px; display:none;
+            white-space:pre-wrap; line-height:1.6;
+        }
+        .terminal.on { display:block; animation:fadein 0.3s ease; }
+        .terminal::before {
+            content:'// ENCRYPTED CHANNEL — VOICE DISTORTION ACTIVE';
+            display:block; color:rgba(220,20,60,0.45); font-size:0.62rem; margin-bottom:8px; letter-spacing:0.12em;
+        }
+        .cursor { display:inline-block; width:7px; height:13px; background:var(--mono); animation:cblink 0.75s step-end infinite; vertical-align:text-bottom; margin-left:2px; }
+        @keyframes cblink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        /* ── ROLLER ── */
+        .roller-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+        @media(max-width:680px) { .roller-grid{grid-template-columns:1fr} }
+
+        .field-label { font-family:'Orbitron',sans-serif; font-size:0.62rem; letter-spacing:0.25em; color:var(--crimson); text-transform:uppercase; display:block; margin-bottom:7px; }
+        .field-group { margin-bottom:16px; }
+        .sel {
+            width:100%; background:rgba(0,0,0,0.75); border:1px solid var(--border);
+            color:var(--text); font-family:'Cinzel',serif; font-size:0.82rem;
+            padding:9px 12px; cursor:pointer; outline:none; appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23dc143c' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat:no-repeat; background-position:right 12px center;
+            transition:border-color 0.25s;
+        }
+        .sel:hover,.sel:focus { border-color:var(--crimson); box-shadow:0 0 8px rgba(220,20,60,0.18); }
+        .sel option { background:#0e0208; }
+
+        .dc-row { display:flex; align-items:center; gap:10px; margin-top:7px; }
+        .dc-num  { font-family:'Orbitron',sans-serif; font-size:1.3rem; color:var(--crimson); font-weight:700; }
+        .dc-lbl  { font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:var(--dim); }
+        .dc-input {
+            width:76px; background:rgba(0,0,0,0.75); border:1px solid var(--border);
+            color:var(--text); font-family:'Orbitron',sans-serif; font-size:1rem;
+            padding:6px 10px; outline:none; text-align:center; display:none;
+        }
+        .dc-input:focus { border-color:var(--crimson); }
+
+        .bonus-box {
+            background:rgba(0,0,0,0.45); border:1px solid rgba(220,20,60,0.15);
+            padding:11px 13px; font-family:'Share Tech Mono',monospace; font-size:0.76rem;
+        }
+        .brow { display:flex; justify-content:space-between; padding:3px 0; }
+        .brow .bn { color:var(--dim); }
+        .brow .bv { color:var(--crimson); font-weight:bold; }
+        .brow.total { border-top:1px solid rgba(220,20,60,0.2); margin-top:5px; padding-top:7px; }
+        .brow.total .bn { color:var(--text); }
+        .brow.total .bv { font-size:1rem; }
+
+        /* Die */
+        .die-col { display:flex; flex-direction:column; align-items:center; gap:18px; }
+        .d20 { width:130px; height:130px; position:relative; cursor:pointer; }
+        .d20 svg { width:100%; height:100%; filter:drop-shadow(0 0 8px rgba(220,20,60,0.35)); transition:filter 0.3s; }
+        .d20:hover svg { filter:drop-shadow(0 0 18px rgba(220,20,60,0.65)); }
+        .d20.spin svg { animation:diespin 0.9s ease-out; filter:drop-shadow(0 0 28px var(--crimson)); }
+        @keyframes diespin {
+            0%   { transform:rotate(0deg) scale(1); }
+            25%  { transform:rotate(90deg) scale(1.12); }
+            65%  { transform:rotate(295deg) scale(1.06); }
+            100% { transform:rotate(360deg) scale(1); }
+        }
+        .die-num {
+            position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            font-family:'Orbitron',sans-serif; font-size:2.2rem; font-weight:900;
+            color:var(--text); text-shadow:0 0 12px var(--crimson); pointer-events:none;
+        }
+        .roll-btn {
+            font-family:'Orbitron',sans-serif; font-size:0.73rem; letter-spacing:0.2em;
+            padding:12px 34px; background:linear-gradient(135deg,rgba(139,0,0,0.45),rgba(220,20,60,0.18));
+            border:1px solid var(--crimson); color:var(--text); cursor:pointer;
+            text-transform:uppercase; transition:all 0.3s; position:relative; overflow:hidden;
+        }
+        .roll-btn::before {
+            content:''; position:absolute; top:50%; left:50%;
+            width:0; height:0; background:rgba(220,20,60,0.28); border-radius:50%;
+            transform:translate(-50%,-50%); transition:width 0.4s,height 0.4s;
+        }
+        .roll-btn:hover::before { width:320px; height:320px; }
+        .roll-btn:hover { box-shadow:0 0 22px rgba(220,20,60,0.38); color:var(--crimson); }
+        .roll-btn:active { transform:scale(0.97); }
+
+        /* Result */
+        .result {
+            margin-top:20px; padding:22px; border:1px solid var(--border);
+            background:rgba(0,0,0,0.5); text-align:center; min-height:120px;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:8px; transition:all 0.4s;
+        }
+        .result.ok  { border-color:var(--crimson); box-shadow:0 0 22px rgba(220,20,60,0.18),inset 0 0 22px rgba(220,20,60,0.05); }
+        .result.no  { border-color:#333; }
+        .result.n20 { border-color:var(--bright-red); animation:n20pulse 1.1s ease-in-out infinite; }
+        @keyframes n20pulse {
+            0%,100%{ box-shadow:0 0 40px rgba(255,34,68,0.35),inset 0 0 30px rgba(255,34,68,0.07); }
+            50%    { box-shadow:0 0 65px rgba(255,34,68,0.55),inset 0 0 45px rgba(255,34,68,0.12); }
+        }
+        .r-outcome { font-family:'Orbitron',sans-serif; font-size:1.05rem; letter-spacing:0.28em; font-weight:900; }
+        .r-outcome.ok  { color:var(--crimson); text-shadow:0 0 10px var(--crimson); }
+        .r-outcome.no  { color:#555; }
+        .r-outcome.n20 { color:var(--bright-red); text-shadow:0 0 22px var(--bright-red); }
+        .r-outcome.n1  { color:#3a1515; }
+        .r-break { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--dim); }
+        .r-flavor { font-family:'Cinzel',serif; font-size:0.86rem; color:var(--text); font-style:italic; line-height:1.65; max-width:500px; }
+        .r-idle { font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:rgba(220,20,60,0.3); letter-spacing:0.22em; }
+
+        /* ── CODEX ── */
+        .codex-entry {
+            border-left:2px solid rgba(220,20,60,0.28); padding:12px 15px;
+            margin-bottom:12px; background:rgba(139,0,0,0.04); transition:all 0.25s;
+        }
+        .codex-entry:hover { border-left-color:var(--crimson); background:rgba(139,0,0,0.09); }
+        .c-num  { font-family:'Orbitron',sans-serif; font-size:0.58rem; color:rgba(220,20,60,0.5); letter-spacing:0.3em; margin-bottom:4px; }
+        .c-rule { font-family:'Cinzel',serif; font-size:0.88rem; color:var(--text); line-height:1.65; }
+
+        .id-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        @media(max-width:520px) { .id-grid{grid-template-columns:1fr} }
+        .id-card { border:1px solid rgba(220,20,60,0.22); padding:16px; background:rgba(0,0,0,0.3); }
+        .id-card.secret { border-color:rgba(220,20,60,0.5); background:rgba(139,0,0,0.07); box-shadow:0 0 14px rgba(220,20,60,0.1); }
+        .id-badge { font-family:'Orbitron',sans-serif; font-size:0.6rem; letter-spacing:0.2em; color:rgba(220,20,60,0.55); margin-bottom:9px; }
+        .id-name  { font-family:'Cinzel Decorative',serif; font-size:1rem; color:var(--text); margin-bottom:8px; }
+        .id-name.red { color:var(--crimson); text-shadow:0 0 8px var(--crimson); }
+        .id-facts { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--dim); line-height:1.8; }
+
+        footer {
+            text-align:center; padding:30px;
+            font-family:'Share Tech Mono',monospace; font-size:0.62rem;
+            color:rgba(220,20,60,0.28); letter-spacing:0.2em;
+        }
+
+        /* ── CONTRACTS ── */
+        .ct-form {
+            display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;
+        }
+        @media(max-width:600px){ .ct-form{grid-template-columns:1fr} }
+        .ct-form .full { grid-column:1/-1; }
+        .ct-input, .ct-textarea {
+            width:100%; background:rgba(0,0,0,0.7); border:1px solid var(--border);
+            color:var(--text); font-family:'Cinzel',serif; font-size:0.82rem;
+            padding:9px 12px; outline:none; transition:border-color 0.25s;
+        }
+        .ct-textarea {
+            font-family:'Share Tech Mono',monospace; font-size:0.74rem;
+            resize:vertical; min-height:70px; line-height:1.6;
+        }
+        .ct-input:focus,.ct-textarea:focus { border-color:var(--crimson); box-shadow:0 0 8px rgba(220,20,60,0.15); }
+        .ct-input::placeholder,.ct-textarea::placeholder { color:rgba(144,112,96,0.5); font-style:italic; }
+        .ct-add-btn {
+            grid-column:1/-1; font-family:'Orbitron',sans-serif; font-size:0.68rem;
+            letter-spacing:0.2em; padding:10px 20px;
+            background:linear-gradient(135deg,rgba(139,0,0,0.4),rgba(220,20,60,0.15));
+            border:1px solid var(--crimson); color:var(--text); cursor:pointer;
+            text-transform:uppercase; transition:all 0.3s; position:relative; overflow:hidden;
+        }
+        .ct-add-btn:hover { box-shadow:0 0 18px rgba(220,20,60,0.3); color:var(--crimson); }
+        .ct-add-btn:active { transform:scale(0.98); }
+
+        .ct-list { display:flex; flex-direction:column; gap:10px; }
+        .ct-card {
+            border:1px solid rgba(220,20,60,0.2); border-left:3px solid var(--dark-red);
+            background:rgba(139,0,0,0.04); overflow:hidden; transition:border-left-color 0.25s;
+        }
+        .ct-card[data-status="active"]   { border-left-color:var(--crimson); }
+        .ct-card[data-status="pending"]  { border-left-color:#886600; }
+        .ct-card[data-status="complete"] { border-left-color:#2a6630; }
+        .ct-card[data-status="compromised"] { border-left-color:#444; }
+        .ct-head {
+            display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer;
+            transition:background 0.2s;
+        }
+        .ct-head:hover { background:rgba(139,0,0,0.1); }
+        .ct-status-pip {
+            width:8px; height:8px; border-radius:50%; flex-shrink:0;
+        }
+        [data-status="active"]      .ct-status-pip { background:var(--crimson); box-shadow:0 0 6px var(--crimson); animation:blink 1.4s ease-in-out infinite; }
+        [data-status="pending"]     .ct-status-pip { background:#cc9900; }
+        [data-status="complete"]    .ct-status-pip { background:#3a8a44; }
+        [data-status="compromised"] .ct-status-pip { background:#444; }
+        .ct-name {
+            font-family:'Cinzel',serif; font-size:0.9rem; color:var(--text); flex:1;
+        }
+        .ct-badges { display:flex; gap:6px; align-items:center; flex-shrink:0; flex-wrap:wrap; }
+        .ct-badge {
+            font-family:'Orbitron',sans-serif; font-size:0.55rem; letter-spacing:0.15em;
+            padding:2px 7px; border:1px solid rgba(220,20,60,0.3); color:var(--dim);
+            text-transform:uppercase;
+        }
+        .ct-badge.active      { border-color:var(--crimson); color:var(--crimson); }
+        .ct-badge.pending     { border-color:#886600; color:#cc9900; }
+        .ct-badge.complete    { border-color:#2a6630; color:#4aaa56; }
+        .ct-badge.compromised { border-color:#444; color:#666; }
+        .ct-chevron {
+            font-size:0.6rem; color:var(--dim); transition:transform 0.25s; flex-shrink:0;
+        }
+        .ct-card.open .ct-chevron { transform:rotate(90deg); }
+        .ct-body {
+            display:none; padding:0 14px 14px; border-top:1px solid rgba(220,20,60,0.1);
+        }
+        .ct-card.open .ct-body { display:block; animation:fadein 0.25s ease; }
+        .ct-meta-row {
+            font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--dim);
+            padding:10px 0 8px; display:flex; gap:16px; flex-wrap:wrap;
+            border-bottom:1px solid rgba(220,20,60,0.08); margin-bottom:10px;
+        }
+        .ct-meta-row span b { color:rgba(220,20,60,0.7); font-weight:normal; }
+        .ct-notes {
+            font-family:'Share Tech Mono',monospace; font-size:0.74rem;
+            color:var(--text); line-height:1.7; white-space:pre-wrap;
+            margin-bottom:12px; min-height:16px;
+        }
+        .ct-notes-empty { color:var(--dim); font-style:italic; }
+        .ct-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+        .ct-status-sel {
+            font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.12em;
+            padding:5px 10px; background:rgba(0,0,0,0.6); border:1px solid rgba(220,20,60,0.25);
+            color:var(--dim); cursor:pointer; text-transform:uppercase; outline:none;
+            appearance:none; -webkit-appearance:none;
+        }
+        .ct-status-sel:hover, .ct-status-sel:focus { border-color:var(--crimson); color:var(--crimson); }
+        .ct-status-sel option { background:#0e0208; }
+        .ct-action-btn {
+            font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.15em;
+            padding:5px 12px; background:transparent; border:1px solid rgba(220,20,60,0.25);
+            color:var(--dim); cursor:pointer; text-transform:uppercase; transition:all 0.2s;
+        }
+        .ct-action-btn:hover { border-color:var(--crimson); color:var(--crimson); }
+        .ct-action-btn.danger:hover { border-color:#555; color:#888; }
+        .ct-edit-area {
+            width:100%; background:rgba(0,0,0,0.6); border:1px solid var(--border);
+            color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.74rem;
+            padding:9px 12px; outline:none; resize:vertical; min-height:80px;
+            line-height:1.6; margin-bottom:8px; display:none;
+        }
+        .ct-edit-area:focus { border-color:var(--crimson); }
+        .ct-empty {
+            font-family:'Share Tech Mono',monospace; font-size:0.72rem;
+            color:rgba(220,20,60,0.25); text-align:center; padding:24px 0;
+            letter-spacing:0.15em;
+        }
+
+        /* File status bar */
+        .file-bar {
+            display:flex; align-items:center; gap:10px; padding:10px 14px;
+            background:rgba(0,0,0,0.5); border:1px solid rgba(220,20,60,0.2);
+            margin-bottom:18px; flex-wrap:wrap;
+        }
+        .file-bar.linked { border-color:rgba(42,102,48,0.45); background:rgba(42,102,48,0.05); }
+        .file-bar .file-icon { font-size:0.75rem; flex-shrink:0; color:var(--dim); }
+        .file-bar.linked .file-icon { color:#4aaa56; }
+        #file-status-label {
+            font-family:'Share Tech Mono',monospace; font-size:0.68rem;
+            color:var(--dim); flex:1; letter-spacing:0.1em; min-width:0;
+        }
+        .file-bar.linked #file-status-label { color:rgba(74,170,86,0.75); }
+        .file-btn {
+            font-family:'Orbitron',sans-serif; font-size:0.57rem; letter-spacing:0.15em;
+            padding:5px 12px; background:transparent; border:1px solid var(--crimson);
+            color:var(--crimson); cursor:pointer; text-transform:uppercase; transition:all 0.2s;
+            white-space:nowrap; flex-shrink:0;
+        }
+        .file-btn:hover { box-shadow:0 0 10px rgba(220,20,60,0.3); }
+        .file-btn.green { border-color:#3a8a44; color:#4aaa56; }
+        .file-btn.green:hover { box-shadow:0 0 10px rgba(58,138,68,0.3); }
+
+        /* Roll log */
+        .ct-rolls-section {
+            margin-top:10px; border:1px solid rgba(220,20,60,0.15);
+            background:rgba(0,0,0,0.25);
+        }
+        .ct-rolls-header {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:8px 12px; cursor:pointer; font-family:'Orbitron',sans-serif;
+            font-size:0.6rem; letter-spacing:0.2em; color:rgba(220,20,60,0.6);
+            text-transform:uppercase; transition:background 0.2s;
+        }
+        .ct-rolls-header:hover { background:rgba(220,20,60,0.06); color:var(--crimson); }
+        .ct-rolls-chevron { font-size:0.55rem; color:var(--dim); transition:transform 0.2s; }
+        .ct-rolls-list { display:none; border-top:1px solid rgba(220,20,60,0.1); }
+        .ct-rolls-list.open { display:block; }
+        .ct-roll-item {
+            padding:9px 12px; border-bottom:1px solid rgba(220,20,60,0.07);
+            transition:background 0.2s;
+        }
+        .ct-roll-item:last-child { border-bottom:none; }
+        .ct-roll-item:hover { background:rgba(220,20,60,0.04); }
+        .ct-roll-top {
+            display:flex; align-items:baseline; gap:10px; margin-bottom:4px; flex-wrap:wrap;
+        }
+        .ct-roll-badge {
+            font-family:'Orbitron',sans-serif; font-size:0.52rem; letter-spacing:0.15em;
+            padding:1px 6px; border:1px solid; text-transform:uppercase; flex-shrink:0;
+        }
+        .ct-roll-badge.success    { border-color:var(--crimson); color:var(--crimson); }
+        .ct-roll-badge.failure    { border-color:#444; color:#555; }
+        .ct-roll-badge.nat20      { border-color:var(--bright-red); color:var(--bright-red); }
+        .ct-roll-badge.nat1       { border-color:#3a1515; color:#5a2525; }
+        .ct-roll-situation {
+            font-family:'Cinzel',serif; font-size:0.8rem; color:var(--text); flex:1; font-style:italic;
+        }
+        .ct-roll-date { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim); flex-shrink:0; }
+        .ct-roll-breakdown {
+            font-family:'Share Tech Mono',monospace; font-size:0.67rem; color:var(--dim); line-height:1.5;
+        }
+
+        /* Completion form */
+        .ct-close-form {
+            display:none; margin-top:12px; padding:14px;
+            border:1px solid rgba(220,20,60,0.25); background:rgba(0,0,0,0.4);
+            animation:fadein 0.25s ease;
+        }
+        .ct-close-form.open { display:block; }
+        .ct-close-title {
+            font-family:'Orbitron',sans-serif; font-size:0.6rem; letter-spacing:0.25em;
+            color:var(--crimson); text-transform:uppercase; margin-bottom:12px;
+        }
+        .ct-close-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        @media(max-width:560px){ .ct-close-grid{grid-template-columns:1fr} }
+        .ct-close-grid .full { grid-column:1/-1; }
+        .ct-close-label {
+            font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.2em;
+            color:rgba(220,20,60,0.6); text-transform:uppercase; display:block; margin-bottom:5px;
+        }
+        .ct-close-input, .ct-close-select, .ct-close-textarea {
+            width:100%; background:rgba(0,0,0,0.6); border:1px solid var(--border);
+            color:var(--text); font-family:'Share Tech Mono',monospace; font-size:0.74rem;
+            padding:8px 11px; outline:none; transition:border-color 0.25s;
+        }
+        .ct-close-select {
+            font-family:'Cinzel',serif; font-size:0.78rem; appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23dc143c' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat:no-repeat; background-position:right 10px center;
+        }
+        .ct-close-select option { background:#0e0208; }
+        .ct-close-textarea { resize:vertical; min-height:65px; line-height:1.6; }
+        .ct-close-input:focus,.ct-close-select:focus,.ct-close-textarea:focus { border-color:var(--crimson); }
+        .ct-close-input::placeholder,.ct-close-textarea::placeholder { color:rgba(144,112,96,0.4); font-style:italic; }
+        .ct-save-close-btn {
+            grid-column:1/-1; font-family:'Orbitron',sans-serif; font-size:0.63rem;
+            letter-spacing:0.2em; padding:9px 18px;
+            background:linear-gradient(135deg,rgba(42,102,48,0.4),rgba(58,138,68,0.15));
+            border:1px solid #3a8a44; color:var(--text); cursor:pointer;
+            text-transform:uppercase; transition:all 0.3s;
+        }
+        .ct-save-close-btn:hover { box-shadow:0 0 14px rgba(58,138,68,0.3); color:#4aaa56; }
+
+        /* Completion record displayed on closed contracts */
+        .ct-closed-record {
+            margin-top:10px; padding:12px 14px;
+            border:1px solid rgba(42,102,48,0.35); background:rgba(42,102,48,0.06);
+            border-left:3px solid #3a8a44;
+        }
+        .ct-closed-header {
+            font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.25em;
+            color:#4aaa56; text-transform:uppercase; margin-bottom:10px;
+        }
+        .ct-closed-row {
+            font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--dim);
+            margin-bottom:5px; line-height:1.6;
+        }
+        .ct-closed-row b { color:rgba(74,170,86,0.8); font-weight:normal; }
+        .ct-closed-notes {
+            font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--text);
+            margin-top:8px; padding-top:8px; border-top:1px solid rgba(42,102,48,0.2);
+            white-space:pre-wrap; line-height:1.7;
+        }
+    </style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+<div class="container">
+
+    <header>
+        <!-- Sith Sigil -->
+        <svg class="sigil" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="37" stroke="#8b0000" stroke-width="0.8" opacity="0.4"/>
+            <circle cx="40" cy="40" r="30" stroke="rgba(220,20,60,0.3)" stroke-width="0.5"/>
+            <polygon points="40,6 54,30 78,34 60,50 65,74 40,62 15,74 20,50 2,34 26,30"
+                     stroke="#dc143c" stroke-width="1" fill="rgba(139,0,0,0.18)"/>
+            <polygon points="40,18 48,32 64,35 53,46 56,62 40,54 24,62 27,46 16,35 32,32"
+                     stroke="rgba(220,20,60,0.5)" stroke-width="0.6" fill="rgba(100,0,0,0.15)"/>
+            <circle cx="40" cy="40" r="5" fill="#dc143c" opacity="0.85"/>
+            <circle cx="40" cy="40" r="5" fill="none" stroke="#ff4466" stroke-width="0.5"/>
+            <line x1="40" y1="2" x2="40" y2="78" stroke="#8b0000" stroke-width="0.4" opacity="0.3"/>
+            <line x1="2" y1="40" x2="78" y2="40" stroke="#8b0000" stroke-width="0.4" opacity="0.3"/>
+        </svg>
+
+        <h1 class="title" data-text="PAGIEZA">PAGIEZA</h1>
+        <div class="subtitle">// encrypted identity — sith blade operative //</div>
+        <div class="tagline">"The blade does not yield — it shows allegiance, but never bends the knee."</div>
+        <div class="divider"></div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="switchTab('comms',this)">Garden Channel</button>
+        <button class="tab-btn" onclick="switchTab('roller',this)">The Harvest</button>
+        <button class="tab-btn" onclick="switchTab('contracts',this)">Contracts</button>
+        <button class="tab-btn" onclick="switchTab('codex',this)">Codex of Thorns</button>
+    </nav>
+
+    <!-- ══════════════ COMMS ══════════════ -->
+    <div id="tab-comms" class="tab-pane active">
+        <div class="panel">
+            <div class="panel-title">Encrypted Transmission Protocols</div>
+            <div class="comm-status">
+                <div class="dot"></div>
+                <span>CHANNEL ACTIVE — VOICE DISTORTION: ENABLED — IDENTITY: MASKED</span>
+            </div>
+            <div class="energy-line"></div>
+
+            <div class="phrase-list">
+                <div class="phrase" onclick="transmit(this,'ACTIVATION SIGNAL','Poison through the cloudless vines.','Outgoing signal. Sends ping to device. Awaiting response from the other end.')">
+                    <div class="p-label">◆ Activation Phrase — Outgoing</div>
+                    <div class="p-text">"Poison through the cloudless vines."</div>
+                    <div class="p-meta">→ Initiates contact // Ping sent to device</div>
+                </div>
+
+                <div class="phrase" onclick="transmit(this,'RESPONSE SIGNAL','Only the bitter fruit remains to fall.','Pagieza confirms the channel. Contact established. Voice distortion confirmed on both ends.')">
+                    <div class="p-label">◆ Confirmation Response — Incoming</div>
+                    <div class="p-text">"Only the bitter fruit remains to fall."</div>
+                    <div class="p-meta">← Pagieza acknowledges // Secure channel confirmed</div>
+                </div>
+
+                <div class="phrase" onclick="transmit(this,'MEETING QUERY','Shall we walk the orchard, or is the seed already planted?','Requesting delivery preference: rendezvous in person, or intelligence transmitted through comms.')">
+                    <div class="p-label">◆ Query — Method of Delivery</div>
+                    <div class="p-text">"Shall we walk the orchard, or is the seed already planted?"</div>
+                    <div class="p-meta">? In-person meeting  //  Intel via comms</div>
+                </div>
+
+                <div class="phrase" onclick="transmit(this,'METHOD QUERY','Do we prune the branch in silence, tie it to our fence, or let it rot and call it nature?','Silent elimination / Blackmail — bind them and hold the leash / Public execution, seen by all, no trace left behind. Awaiting client instruction.')">
+                    <div class="p-label">◆ Query — Method of Execution</div>
+                    <div class="p-text">"Do we prune the branch in silence, tie it to our fence, or let it rot and call it nature?"</div>
+                    <div class="p-meta">? Silent kill  //  Blackmail &amp; leverage  //  Public elimination — witnessed, traceless</div>
+                </div>
+
+                <div class="phrase" onclick="transmit(this,'TOOL QUERY','How shall the garden be tended? The soil is ready for your choice of tool.','Requesting specific method of death. Pagieza awaits instruction on preferred instrument.')">
+                    <div class="p-label">◆ Query — Method of Death</div>
+                    <div class="p-text">"How shall the garden be tended? The soil is ready for your choice of tool."</div>
+                    <div class="p-meta">? Preferred instrument of elimination requested</div>
+                </div>
+
+                <div class="phrase" onclick="transmit(this,'CONTRACT ACCEPTED','The season has turned; I will bring in the harvest.','Contract is open. Pagieza moves. The target is already dead — they simply do not know it yet.')">
+                    <div class="p-label">◆ Declaration — Contract Accepted</div>
+                    <div class="p-text">"The season has turned; I will bring in the harvest."</div>
+                    <div class="p-meta">✓ Contract confirmed // The blade is drawn</div>
+                </div>
+            </div>
+
+            <div id="terminal" class="terminal">
+                <span id="t-label" style="color:rgba(220,20,60,0.8);display:block;margin-bottom:4px;"></span><span id="t-text"></span><span class="cursor" id="t-cursor" style="display:none;"></span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Active Contracts — Live Feed</div>
+            <div id="comms-active-list"><div class="ct-empty">NO ACTIVE CONTRACTS</div></div>
+        </div>
+    </div>
+
+    <!-- ══════════════ ROLLER ══════════════ -->
+    <div id="tab-roller" class="tab-pane">
+        <div class="panel">
+            <div class="panel-title">Mission Assessment — D20 System</div>
+            <div class="roller-grid">
+                <!-- Controls -->
+                <div>
+                    <div class="field-group">
+                        <label class="field-label">Operative Skill</label>
+                        <select class="sel" id="skill-sel" onchange="updateMods()">
+                            <option value="8">Assassination — The Harvest (+8)</option>
+                            <option value="8">Blade Mastery — Pagieza's Edge (+8)</option>
+                            <option value="7">Stealth & Infiltration (+7)</option>
+                            <option value="6">Deception & Disguise (+6)</option>
+                            <option value="6">Force Intuition (+6)</option>
+                            <option value="5">Escape & Pursuit (+5)</option>
+                            <option value="7">Investigation & Intel Gathering (+7)</option>
+                            <option value="4">Unarmed Engagement (+4)</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Mission Difficulty</label>
+                        <select class="sel" id="dc-sel" onchange="updateDC()">
+                            <option value="8">Routine — DC 8</option>
+                            <option value="12" selected>Somewhat Difficult — DC 12</option>
+                            <option value="15">Difficult — DC 15</option>
+                            <option value="18">Very Difficult — DC 18</option>
+                            <option value="22">Extremely Difficult — DC 22</option>
+                            <option value="25">Near Impossible — DC 25</option>
+                            <option value="custom">Custom DC</option>
+                        </select>
+                        <div class="dc-row">
+                            <span class="dc-lbl">Target DC:</span>
+                            <span class="dc-num" id="dc-show">12</span>
+                            <input type="number" class="dc-input" id="dc-custom" min="1" max="40" value="12" oninput="customDC()">
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Operative Dossier</label>
+                        <div class="bonus-box">
+                            <div class="brow"><span class="bn">Active Skill Bonus</span><span class="bv" id="b-skill">+8</span></div>
+                            <div class="brow"><span class="bn">Sith Combat Training</span><span class="bv">+2</span></div>
+                            <div class="brow"><span class="bn">Pagieza's Resolve</span><span class="bv">+1</span></div>
+                            <div class="brow total"><span class="bn">Total Modifier</span><span class="bv" id="b-total">+11</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Die -->
+                <div class="die-col">
+                    <div class="d20" id="die" onclick="rollDie()">
+                        <svg viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="65,6 120,36 120,94 65,124 10,94 10,36"
+                                     fill="rgba(8,0,16,0.95)" stroke="#8b0000" stroke-width="1.6"/>
+                            <!-- Face divisions -->
+                            <polygon points="65,6 120,36 65,65"
+                                     fill="rgba(139,0,0,0.14)" stroke="rgba(220,20,60,0.38)" stroke-width="0.6"/>
+                            <polygon points="65,6 10,36 65,65"
+                                     fill="rgba(80,0,0,0.1)" stroke="rgba(220,20,60,0.3)" stroke-width="0.6"/>
+                            <polygon points="120,36 120,94 65,65"
+                                     fill="rgba(100,0,0,0.11)" stroke="rgba(220,20,60,0.3)" stroke-width="0.6"/>
+                            <polygon points="10,36 10,94 65,65"
+                                     fill="rgba(60,0,0,0.09)" stroke="rgba(220,20,60,0.28)" stroke-width="0.6"/>
+                            <polygon points="65,124 120,94 65,65"
+                                     fill="rgba(139,0,0,0.14)" stroke="rgba(220,20,60,0.35)" stroke-width="0.6"/>
+                            <polygon points="65,124 10,94 65,65"
+                                     fill="rgba(80,0,0,0.1)" stroke="rgba(220,20,60,0.3)" stroke-width="0.6"/>
+                            <!-- Inner glow ring -->
+                            <circle cx="65" cy="65" r="22" fill="none" stroke="rgba(220,20,60,0.18)" stroke-width="0.8"/>
+                        </svg>
+                        <div class="die-num" id="die-num">—</div>
+                    </div>
+
+                    <button class="roll-btn" onclick="rollDie()">◆ Cast the Die ◆</button>
+
+                    <div style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--dim);text-align:center;line-height:1.8;">
+                        Click die or button to roll<br>
+                        <span style="color:rgba(220,20,60,0.45);">The blade decides all things</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result" id="result">
+                <div class="r-idle">AWAITING ROLL — THE GARDEN HOLDS ITS BREATH</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════ CONTRACTS ══════════════ -->
+    <div id="tab-contracts" class="tab-pane">
+        <div id="file-status-bar" class="file-bar">
+            <span class="file-icon">◈</span>
+            <span id="file-status-label">NO SAVE FILE LINKED — DATA STORED IN BROWSER ONLY</span>
+            <button id="file-reconnect-btn" class="file-btn green" onclick="reconnectFile()" style="display:none">◆ Reconnect</button>
+            <button class="file-btn green" onclick="triggerImport()">◆ Import Contract</button>
+            <button id="file-link-btn" class="file-btn" onclick="linkSaveFile()">◆ Link Save File</button>
+            <input type="file" id="import-input" accept=".json" style="display:none" onchange="handleImport(event)">
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Log New Contract</div>
+            <div class="ct-form">
+                <div>
+                    <label class="field-label">Target Name</label>
+                    <input class="ct-input" id="ct-name" type="text" placeholder="Full name or designation…" autocomplete="off">
+                </div>
+                <div>
+                    <label class="field-label">Classification / Role</label>
+                    <input class="ct-input" id="ct-class" type="text" placeholder="e.g. Velocity Inhibitor…" autocomplete="off">
+                </div>
+                <div>
+                    <label class="field-label">Priority</label>
+                    <select class="sel" id="ct-priority">
+                        <option value="Standard">Standard</option>
+                        <option value="Priority">Priority</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="field-label">Status</label>
+                    <select class="sel" id="ct-status">
+                        <option value="active">Active</option>
+                        <option value="pending">Pending</option>
+                        <option value="complete">Complete</option>
+                        <option value="compromised">Compromised</option>
+                    </select>
+                </div>
+                <div class="full">
+                    <label class="field-label">Intel &amp; Notes</label>
+                    <textarea class="ct-textarea" id="ct-notes" placeholder="Known location, habits, guard detail, method preference, client details…"></textarea>
+                </div>
+                <button class="ct-add-btn" onclick="addContract()">◆ Open Contract ◆</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Contract Registry</div>
+            <div id="ct-list" class="ct-list"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════ CODEX ══════════════ -->
+    <div id="tab-codex" class="tab-pane">
+        <div class="panel">
+            <div class="panel-title">The Law of Pagieza — Codes of Conduct</div>
+
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE I</div>
+                <div class="c-rule">No one shall know that Astianama and Pagieza are the same. The assassin and the intelligence specialist walk separate paths, speak in separate tongues, and leave separate shadows.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE II</div>
+                <div class="c-rule">Astianama presents herself as an intelligence specialist. She gathers, she advises, she observes. Never does she reach for the blade where others watch.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE III</div>
+                <div class="c-rule">Pagieza does not pity the one she kills. Mercy is a weed in the garden — it spreads, it suffocates, and it must be pulled before it takes root.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE IV</div>
+                <div class="c-rule">The blade does not yield. When Pagieza draws, the matter is already decided. There is no negotiation after the season has turned.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE V</div>
+                <div class="c-rule">The blade shows allegiance — but never bends the knee. Pagieza serves those who have earned her service. Those who demand it receive only the harvest.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE VI</div>
+                <div class="c-rule">All contact is conducted through the Garden Channel. Identity is masked. Voice is distorted on both ends. The flower metaphors hold until the harvest is complete and the channel closes.</div>
+            </div>
+            <div class="codex-entry">
+                <div class="c-num">ARTICLE VII</div>
+                <div class="c-rule">The device is prehistoric and self-made. It cannot be traced. When the channel closes, it is as though the orchard never existed and no gardener ever walked its rows.</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Dual Identity Protocol</div>
+            <div class="id-grid">
+                <div class="id-card">
+                    <div class="id-badge">PUBLIC IDENTITY</div>
+                    <div class="id-name">Astianama</div>
+                    <div class="id-facts">
+                        Species: Twi'lek<br>
+                        Role: Intelligence Specialist<br>
+                        Alignment: Sith Order<br>
+                        Known for: Information &amp; Analysis<br>
+                        Persona: Composed, Strategic
+                    </div>
+                </div>
+                <div class="id-card secret">
+                    <div class="id-badge">SECRET IDENTITY</div>
+                    <div class="id-name red">Pagieza</div>
+                    <div class="id-facts">
+                        Meaning: Poison (Sith tongue)<br>
+                        Role: Sith Lord Assassin<br>
+                        Weapon: The Blade — Pagieza<br>
+                        Method: Garden Channel Comms<br>
+                        Persona: Merciless, Absolute
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>◆ PAGIEZA — THE POISON BLADE ◆ // SITH ORDER // CHANNEL ENCRYPTED // ALL TRANSMISSIONS DISTORTED ◆</footer>
+</div>
+
+<script>
+/* ══════ STARFIELD ══════ */
+const cv = document.getElementById('starfield');
+const cx = cv.getContext('2d');
+let stars=[], embers=[];
+
+function resize(){ cv.width=innerWidth; cv.height=innerHeight; }
+function mkStars(){
+    stars=[];
+    for(let i=0;i<220;i++) stars.push({
+        x:Math.random()*cv.width, y:Math.random()*cv.height,
+        r:Math.random()*1.4+0.2, op:Math.random()*0.6+0.15,
+        tw:Math.random()*0.018+0.004, td:Math.random()>.5?1:-1,
+        dx:(Math.random()-.5)*0.08
+    });
+    embers=[];
+    for(let i=0;i<18;i++) embers.push(mkEmber());
+}
+function mkEmber(){ return { x:Math.random()*cv.width, y:cv.height+10,
+    vx:(Math.random()-.5)*0.35, vy:-Math.random()*0.45-0.12,
+    r:Math.random()*2.2+0.8, life:0, max:Math.random()*0.6+0.4 }; }
+function draw(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    stars.forEach(s=>{
+        s.op+=s.tw*s.td; if(s.op>0.8||s.op<0.1) s.td*=-1;
+        s.x+=s.dx; if(s.x<0) s.x=cv.width; if(s.x>cv.width) s.x=0;
+        cx.beginPath(); cx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        cx.fillStyle=`rgba(255,220,210,${s.op})`; cx.fill();
+    });
+    embers.forEach((e,i)=>{
+        e.x+=e.vx; e.y+=e.vy; e.life+=0.006;
+        if(e.life>e.max||e.y<-10) { embers[i]=mkEmber(); return; }
+        const a=Math.sin(e.life/e.max*Math.PI)*0.55;
+        cx.beginPath(); cx.arc(e.x,e.y,e.r,0,Math.PI*2);
+        cx.fillStyle=`rgba(220,20,60,${a})`; cx.shadowBlur=8; cx.shadowColor='#dc143c'; cx.fill(); cx.shadowBlur=0;
+    });
+    requestAnimationFrame(draw);
+}
+resize(); mkStars(); draw();
+window.addEventListener('resize',()=>{ resize(); mkStars(); });
+
+/* ══════ TABS ══════ */
+function switchTab(id,btn){
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+id).classList.add('active');
+    btn.classList.add('active');
+}
+
+/* ══════ COMMS ══════ */
+let typing=null;
+function transmit(el,label,msg,meta){
+    document.querySelectorAll('.phrase').forEach(p=>p.classList.remove('tx'));
+    el.classList.add('tx');
+    const term=document.getElementById('terminal');
+    const tl=document.getElementById('t-label');
+    const tt=document.getElementById('t-text');
+    const tc=document.getElementById('t-cursor');
+    if(typing) clearTimeout(typing);
+    term.classList.add('on');
+    tl.textContent=`[${label}]  —  ${new Date().toLocaleTimeString()}`;
+    tt.textContent=''; tc.style.display='inline-block';
+    const full=msg+'\n\n>> '+meta;
+    let i=0;
+    const GLYPHS='█▓▒░╔╗╚╝║═▄▀';
+    function tick(){
+        if(i>=full.length){ return; }
+        if(Math.random()<0.04){
+            const g=GLYPHS[Math.floor(Math.random()*GLYPHS.length)];
+            tt.textContent+=g;
+            typing=setTimeout(()=>{ tt.textContent=tt.textContent.slice(0,-1)+full[i]; i++; typing=setTimeout(tick,28+Math.random()*18); },55);
+        } else { tt.textContent+=full[i]; i++; typing=setTimeout(tick,22+Math.random()*22); }
+    }
+    tick();
+}
+
+/* ══════ ROLLER ══════ */
+let curBonus=8, curDC=12, rolling=false;
+
+function updateMods(){
+    curBonus=parseInt(document.getElementById('skill-sel').value);
+    document.getElementById('b-skill').textContent='+'+curBonus;
+    document.getElementById('b-total').textContent='+'+(curBonus+3);
+}
+function updateDC(){
+    const v=document.getElementById('dc-sel').value;
+    const show=document.getElementById('dc-show');
+    const inp=document.getElementById('dc-custom');
+    if(v==='custom'){
+        inp.style.display='inline-block'; show.style.display='none';
+        curDC=parseInt(inp.value)||12;
+    } else {
+        inp.style.display='none'; show.style.display='inline-block';
+        curDC=parseInt(v); show.textContent=curDC;
+    }
+}
+function customDC(){
+    const v=parseInt(document.getElementById('dc-custom').value);
+    if(v>=1&&v<=40) curDC=v;
+}
+
+const SF=[
+    "The blossom has fallen. The garden is tended.",
+    "The harvest is complete. The fruit has ripened to ruin.",
+    "The vine is severed. None shall mourn the withered stem.",
+    "The orchard yields. The poison finds its root.",
+    "The branch breaks cleanly. The season has turned in our favor.",
+    "The flower closes. What bloomed shall bloom no more.",
+    "Every root has been mapped. Every hidden stem traced to its source. The soil holds no more secrets.",
+    "The seeds were scattered wide — but Astianama found every one. The garden is known.",
+];
+const FF=[
+    "The root holds. The garden resists the blade — for now.",
+    "The frost claims the gardener. Retreat. Tend another day.",
+    "The orchard is closed. The gate shall not yield this season.",
+    "The soil rejects the seed. Pagieza recedes into shadow.",
+    "The thorn turned inward. A new approach must be cultivated.",
+    "The roots run deeper than they appeared. The trail goes cold. The garden keeps its secrets.",
+    "Too many weeds obscure the path. The intelligence is incomplete — patience before the harvest.",
+];
+const N20=[
+    "The blade sings. The garden weeps. None survive Pagieza's touch — not in this life, not in the next.",
+    "Perfection. The poison moves without sound, without shadow, without mercy. The harvest is absolute.",
+    "The Force bends to the blade. Even the stars hold their breath. The season belongs to Pagieza.",
+];
+const N1=[
+    "The thorn turns inward. Even poison has its price, and today that price is paid.",
+    "The garden rejects its own gardener. Pagieza withdraws — the blade demands patience before blood.",
+    "The season turns against the harvest. Fortune abandons the orchard. Recalculate everything.",
+];
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+function rollDie(){
+    if(rolling) return;
+    rolling=true;
+    const die=document.getElementById('die');
+    const dnum=document.getElementById('die-num');
+    const res=document.getElementById('result');
+    die.classList.add('spin');
+    let c=0, max=22;
+    const iv=setInterval(()=>{
+        dnum.textContent=Math.floor(Math.random()*20)+1;
+        c++;
+        if(c>=max){
+            clearInterval(iv);
+            const nat=Math.floor(Math.random()*20)+1;
+            const mod=curBonus+3;
+            const tot=nat+mod;
+            dnum.textContent=nat;
+            die.classList.remove('spin');
+            const bd=`Natural: ${nat}  +  Modifier: +${mod}  =  Total: ${tot}  vs  DC ${curDC}`;
+            let oc,oc2,pc,fl;
+            if(nat===20){
+                oc='CRITICAL SUCCESS — THE BLADE SINGS'; oc2='n20'; pc='n20'; fl=pick(N20);
+            } else if(nat===1){
+                oc='CRITICAL FAILURE — THE THORN TURNS'; oc2='n1'; pc='no'; fl=pick(N1);
+            } else if(tot>=curDC){
+                oc='SUCCESS — THE HARVEST IS TAKEN'; oc2='ok'; pc='ok'; fl=pick(SF);
+            } else {
+                oc='FAILURE — THE GARDEN HOLDS'; oc2='no'; pc='no'; fl=pick(FF);
+            }
+            res.className='result '+pc;
+            res.innerHTML=`
+                <div class="r-outcome ${oc2}">${oc}</div>
+                <div class="r-break">${bd}</div>
+                <div class="r-flavor">${fl}</div>`;
+            rolling=false;
+        }
+    },55);
+}
+
+updateMods(); updateDC();
+
+/* ══════ CONTRACTS — FILE STORAGE ══════ */
+const SEED = [{
+    id: 'seed-1',
+    name: 'Icikgua, Colonel Trebere of the Achty\'ai Guard',
+    classification: 'Velocity Inhibitor',
+    priority: 'Standard',
+    status: 'active',
+    notes: 'Current open contract. Method and tool pending client instruction.',
+    created: new Date().toLocaleDateString()
+}];
+
+let fileHandle = null;
+
+/* IndexedDB helpers — stores the file handle across sessions */
+function openDB(){
+    return new Promise((res,rej)=>{
+        const r = indexedDB.open('pagieza_db',1);
+        r.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+        r.onsuccess = e => res(e.target.result);
+        r.onerror   = e => rej(e);
+    });
+}
+async function dbPut(key,val){
+    const db = await openDB();
+    return new Promise((res,rej)=>{ const tx=db.transaction('kv','readwrite'); tx.objectStore('kv').put(val,key); tx.oncomplete=res; tx.onerror=rej; });
+}
+async function dbGet(key){
+    const db = await openDB();
+    return new Promise((res,rej)=>{ const tx=db.transaction('kv','readonly'); const r=tx.objectStore('kv').get(key); r.onsuccess=e=>res(e.target.result); r.onerror=rej; });
+}
+
+function setFileStatus(linked, name){
+    const bar  = document.getElementById('file-status-bar');
+    const lbl  = document.getElementById('file-status-label');
+    const link = document.getElementById('file-link-btn');
+    const rec  = document.getElementById('file-reconnect-btn');
+    if(linked){
+        bar.className='file-bar linked';
+        lbl.textContent='SAVE FILE LINKED — '+(name||'pagieza_contracts.json');
+        link.textContent='◆ Relink File';
+        rec.style.display='none';
+    } else {
+        bar.className='file-bar';
+        lbl.textContent='NO SAVE FILE LINKED — DATA STORED IN BROWSER ONLY';
+        link.textContent='◆ Link Save File';
+    }
+}
+
+async function linkSaveFile(){
+    if(!window.showSaveFilePicker){
+        alert('File System Access API is not supported in this browser.\nPlease use Chrome or Edge.');
+        return;
+    }
+    try {
+        const h = await window.showSaveFilePicker({
+            suggestedName: 'pagieza_contracts.json',
+            types: [{ description: 'JSON Contract Registry', accept: { 'application/json': ['.json'] } }]
+        });
+        fileHandle = h;
+        await dbPut('fileHandle', h);
+        await saveToFile();
+        setFileStatus(true, h.name);
+    } catch(e){ /* user cancelled */ }
+}
+
+async function saveToFile(){
+    if(!fileHandle) return;
+    try {
+        const perm = await fileHandle.requestPermission({ mode:'readwrite' });
+        if(perm !== 'granted') return;
+        const w = await fileHandle.createWritable();
+        await w.write(JSON.stringify(loadContracts(), null, 2));
+        await w.close();
+    } catch(e){ console.warn('File save failed:', e); }
+}
+
+async function readFromFile(h){
+    try {
+        const f = await h.getFile();
+        return JSON.parse(await f.text());
+    } catch(e){ return null; }
+}
+
+async function reconnectFile(){
+    if(!fileHandle) return;
+    try {
+        const perm = await fileHandle.requestPermission({ mode:'readwrite' });
+        if(perm === 'granted'){
+            const data = await readFromFile(fileHandle);
+            if(data){
+                localStorage.setItem('pagieza_contracts', JSON.stringify(data));
+                setFileStatus(true, fileHandle.name);
+                document.getElementById('file-reconnect-btn').style.display='none';
+                renderContracts();
+            }
+        }
+    } catch(e){}
+}
+
+async function initStorage(){
+    try {
+        const h = await dbGet('fileHandle');
+        if(h){
+            fileHandle = h;
+            const perm = await h.queryPermission({ mode:'readwrite' });
+            if(perm === 'granted'){
+                const data = await readFromFile(h);
+                if(data){ localStorage.setItem('pagieza_contracts', JSON.stringify(data)); setFileStatus(true, h.name); }
+            } else {
+                /* Need a user gesture to re-request permission */
+                setFileStatus(false);
+                document.getElementById('file-reconnect-btn').style.display='inline-block';
+                document.getElementById('file-status-label').textContent='SAVE FILE FOUND — CLICK RECONNECT TO LOAD';
+            }
+        } else {
+            setFileStatus(false);
+        }
+    } catch(e){ setFileStatus(false); }
+    renderContracts();
+}
+
+function loadContracts(){
+    const raw = localStorage.getItem('pagieza_contracts');
+    if(!raw){ localStorage.setItem('pagieza_contracts', JSON.stringify(SEED)); return SEED; }
+    return JSON.parse(raw);
+}
+function saveContracts(list){
+    localStorage.setItem('pagieza_contracts', JSON.stringify(list));
+    saveToFile(); /* async fire-and-forget */
+}
+
+function addContract(){
+    const name  = document.getElementById('ct-name').value.trim();
+    const cls   = document.getElementById('ct-class').value.trim();
+    const prio  = document.getElementById('ct-priority').value;
+    const stat  = document.getElementById('ct-status').value;
+    const notes = document.getElementById('ct-notes').value.trim();
+    if(!name) { document.getElementById('ct-name').focus(); return; }
+    const list = loadContracts();
+    list.unshift({ id:'ct-'+Date.now(), name, classification:cls||'—', priority:prio, status:stat, notes, created:new Date().toLocaleDateString() });
+    saveContracts(list);
+    document.getElementById('ct-name').value='';
+    document.getElementById('ct-class').value='';
+    document.getElementById('ct-notes').value='';
+    document.getElementById('ct-status').value='active';
+    document.getElementById('ct-priority').value='Standard';
+    renderContracts();
+}
+
+function deleteContract(id){
+    const list = loadContracts().filter(c=>c.id!==id);
+    saveContracts(list);
+    renderContracts();
+}
+
+function changeStatus(id, status){
+    const list = loadContracts();
+    const c = list.find(x=>x.id===id);
+    if(c){ c.status=status; saveContracts(list); renderContracts(); }
+}
+
+function openNoteEdit(id){
+    const area = document.getElementById('ct-edit-'+id);
+    const btn  = document.getElementById('ct-notebtn-'+id);
+    if(area.style.display==='none'||!area.style.display){
+        area.style.display='block'; area.focus();
+        btn.textContent='◆ Save Notes';
+    } else {
+        const list = loadContracts();
+        const c = list.find(x=>x.id===id);
+        if(c){ c.notes=area.value; saveContracts(list); renderContracts(); }
+    }
+}
+
+function toggleCard(id){
+    const card = document.getElementById('card-'+id);
+    card.classList.toggle('open');
+}
+
+function toggleCloseForm(id){
+    const card = document.getElementById('card-'+id);
+    if(!card.classList.contains('open')) card.classList.add('open');
+    const form = document.getElementById('clf-'+id);
+    form.classList.toggle('open');
+}
+
+function saveClose(id){
+    const approach = document.getElementById('clf-approach-'+id).value;
+    const method   = document.getElementById('clf-method-'+id).value.trim();
+    const notes    = document.getElementById('clf-notes-'+id).value.trim();
+    const list = loadContracts();
+    const c = list.find(x=>x.id===id);
+    if(c){
+        c.status         = 'complete';
+        c.closed_approach = approach;
+        c.closed_method   = method || '—';
+        c.closed_notes    = notes;
+        c.closed_date     = new Date().toLocaleDateString();
+        saveContracts(list);
+        renderContracts();
+        // re-open the card so user sees the report
+        setTimeout(()=>{ const card=document.getElementById('card-'+id); if(card) card.classList.add('open'); },50);
+    }
+}
+
+const STATUS_LABELS = { active:'Active', pending:'Pending', complete:'Complete', compromised:'Compromised' };
+
+function renderContracts(){
+    const list = loadContracts();
+    const el   = document.getElementById('ct-list');
+    const feed = document.getElementById('comms-active-list');
+
+    if(!list.length){
+        el.innerHTML='<div class="ct-empty">THE REGISTRY IS EMPTY — NO CONTRACTS LOGGED</div>';
+        feed.innerHTML='<div class="ct-empty">NO ACTIVE CONTRACTS</div>';
+        return;
+    }
+
+    el.innerHTML = list.map(c=>`
+        <div class="ct-card" id="card-${c.id}" data-status="${c.status}">
+            <div class="ct-head" onclick="toggleCard('${c.id}')">
+                <div class="ct-status-pip"></div>
+                <div class="ct-name">${c.name}</div>
+                <div class="ct-badges">
+                    <span class="ct-badge">${c.priority}</span>
+                    <span class="ct-badge ${c.status}">${STATUS_LABELS[c.status]}</span>
+                </div>
+                <div class="ct-chevron">▶</div>
+            </div>
+            <div class="ct-body">
+                <div class="ct-meta-row">
+                    <span><b>Classification:</b> ${c.classification}</span>
+                    <span><b>Logged:</b> ${c.created}</span>
+                    ${c.closed_date ? `<span><b>Closed:</b> ${c.closed_date}</span>` : ''}
+                </div>
+
+                <div class="ct-notes ${c.notes?'':'ct-notes-empty'}">${c.notes||'No intelligence on file.'}</div>
+                <textarea class="ct-edit-area" id="ct-edit-${c.id}">${c.notes||''}</textarea>
+
+                ${c.status==='complete' && c.closed_approach ? `
+                <div class="ct-closed-record">
+                    <div class="ct-closed-header">◆ Contract Closed — Harvest Report</div>
+                    <div class="ct-closed-row"><b>Approach:</b> ${c.closed_approach}</div>
+                    <div class="ct-closed-row"><b>Method:</b> ${c.closed_method||'—'}</div>
+                    ${c.closed_notes ? `<div class="ct-closed-notes">${c.closed_notes}</div>` : ''}
+                </div>` : ''}
+
+                <div class="ct-close-form" id="clf-${c.id}">
+                    <div class="ct-close-title">◆ Close Contract — Log the Harvest</div>
+                    <div class="ct-close-grid">
+                        <div>
+                            <label class="ct-close-label">Approach</label>
+                            <select class="ct-close-select" id="clf-approach-${c.id}">
+                                <option>Silent Elimination</option>
+                                <option>Blackmail &amp; Leverage</option>
+                                <option>Public Execution — Witnessed</option>
+                                <option>Blade — Personal</option>
+                                <option>Poison</option>
+                                <option>Staged Accident</option>
+                                <option>Capture &amp; Extract</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="ct-close-label">Specific Method / Tool</label>
+                            <input class="ct-close-input" id="clf-method-${c.id}" type="text" placeholder="Weapon, substance, or technique…">
+                        </div>
+                        <div class="full">
+                            <label class="ct-close-label">Final Report &amp; Outcome Notes</label>
+                            <textarea class="ct-close-textarea" id="clf-notes-${c.id}" placeholder="How it unfolded. Complications. Witnesses. What the garden looked like after…"></textarea>
+                        </div>
+                        <button class="ct-save-close-btn" onclick="saveClose('${c.id}')">◆ Seal the Contract — The Harvest is Done ◆</button>
+                    </div>
+                </div>
+
+                ${c.rolls && c.rolls.length ? `
+                <div class="ct-rolls-section">
+                    <div class="ct-rolls-header" onclick="toggleRolls('${c.id}')">
+                        <span>◆ Mission Rolls — ${c.rolls.length} logged</span>
+                        <span class="ct-rolls-chevron" id="rolls-chev-${c.id}">▶</span>
+                    </div>
+                    <div class="ct-rolls-list" id="rolls-list-${c.id}">
+                        ${c.rolls.map(r=>`
+                        <div class="ct-roll-item">
+                            <div class="ct-roll-top">
+                                <span class="ct-roll-badge ${r.outcome}">${r.outcome==='nat20'?'CRIT SUCCESS':r.outcome==='nat1'?'CRIT FAIL':r.outcome.toUpperCase()}</span>
+                                <span class="ct-roll-situation">${r.situation}</span>
+                                <span class="ct-roll-date">${r.date}</span>
+                            </div>
+                            <div class="ct-roll-breakdown">${r.skill} &nbsp;·&nbsp; DC ${r.dc} &nbsp;·&nbsp; Natural: ${r.natural} + Mod: +${r.modifier} = Total: ${r.total}</div>
+                        </div>`).join('')}
+                    </div>
+                </div>` : ''}
+
+                <div class="ct-close-form" id="rof-${c.id}">
+                    <div class="ct-close-title">◆ Log Mission Roll</div>
+                    <div class="ct-close-grid">
+                        <div class="full">
+                            <label class="ct-close-label">Situation</label>
+                            <input class="ct-close-input" id="rof-sit-${c.id}" type="text" placeholder="What were you attempting…" autocomplete="off">
+                        </div>
+                        <div>
+                            <label class="ct-close-label">Skill</label>
+                            <select class="ct-close-select" id="rof-skill-${c.id}">
+                                <option value="8" data-name="Assassination">Assassination (+8)</option>
+                                <option value="8" data-name="Blade Mastery">Blade Mastery (+8)</option>
+                                <option value="7" data-name="Stealth & Infiltration">Stealth &amp; Infiltration (+7)</option>
+                                <option value="6" data-name="Deception & Disguise">Deception &amp; Disguise (+6)</option>
+                                <option value="6" data-name="Force Intuition">Force Intuition (+6)</option>
+                                <option value="5" data-name="Escape & Pursuit">Escape &amp; Pursuit (+5)</option>
+                                <option value="7" data-name="Investigation & Intel">Investigation &amp; Intel (+7)</option>
+                                <option value="4" data-name="Unarmed Engagement">Unarmed Engagement (+4)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="ct-close-label">DC</label>
+                            <input class="ct-close-input" id="rof-dc-${c.id}" type="number" min="1" max="40" value="12">
+                        </div>
+                        <div class="full">
+                            <label class="ct-close-label">Natural Roll &nbsp;<span style="color:var(--dim);font-family:Share Tech Mono,monospace;font-size:0.65rem;letter-spacing:0">(enter manually or click Roll)</span></label>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input class="ct-close-input" id="rof-nat-${c.id}" type="number" min="1" max="20" placeholder="1 – 20" style="flex:1">
+                                <button class="ct-action-btn" onclick="autoRollContract('${c.id}')" style="flex-shrink:0;padding:8px 14px;font-size:0.9rem;" title="Roll d20">d20</button>
+                            </div>
+                        </div>
+                        <button class="ct-save-close-btn" onclick="attachRoll('${c.id}')">◆ Attach Roll to Contract ◆</button>
+                    </div>
+                </div>
+
+                <div class="ct-actions">
+                    <select class="ct-status-sel" onchange="changeStatus('${c.id}',this.value);this.blur()">
+                        <option value="active"      ${c.status==='active'      ?'selected':''}>● Active</option>
+                        <option value="pending"     ${c.status==='pending'     ?'selected':''}>● Pending</option>
+                        <option value="compromised" ${c.status==='compromised' ?'selected':''}>● Compromised</option>
+                    </select>
+                    <button class="ct-action-btn" id="ct-notebtn-${c.id}" onclick="openNoteEdit('${c.id}')">◆ Edit Notes</button>
+                    <button class="ct-action-btn" onclick="toggleRollForm('${c.id}')">◆ Log Roll</button>
+                    <button class="ct-action-btn" onclick="toggleCloseForm('${c.id}')">◆ Close Contract</button>
+                    <button class="ct-action-btn" onclick="exportContract('${c.id}')">◆ Export</button>
+                    <button class="ct-action-btn danger" onclick="deleteContract('${c.id}')">✕ Purge</button>
+                </div>
+            </div>
+        </div>`).join('');
+
+    const active = list.filter(c=>c.status==='active');
+    if(!active.length){
+        feed.innerHTML='<div class="ct-empty">NO ACTIVE CONTRACTS</div>';
+    } else {
+        feed.innerHTML = active.map(c=>`
+            <div class="phrase" style="cursor:default; border-left-color:var(--crimson); margin-bottom:8px;">
+                <div class="p-label">◆ Target — Status: Active</div>
+                <div class="p-text">${c.name}</div>
+                <div class="p-meta">Classification: ${c.classification} &nbsp;·&nbsp; Priority: ${c.priority}</div>
+            </div>`).join('');
+    }
+}
+
+/* ══════ EXPORT / IMPORT ══════ */
+function exportContract(id){
+    const c = loadContracts().find(x=>x.id===id);
+    if(!c) return;
+    const blob = new Blob([JSON.stringify(c,null,2)], {type:'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'pagieza_contract_'+c.name.replace(/[^a-z0-9]/gi,'_').toLowerCase().slice(0,40)+'.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function triggerImport(){
+    document.getElementById('import-input').click();
+}
+
+function handleImport(evt){
+    const file = evt.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if(!data.name) { alert('Invalid contract file — no target name found.'); return; }
+            data.id = 'imported-'+Date.now();
+            data.imported = true;
+            const list = loadContracts();
+            list.unshift(data);
+            saveContracts(list);
+            renderContracts();
+        } catch(err){ alert('Could not read contract file. Ensure it is a valid Pagieza export.'); }
+    };
+    reader.readAsText(file);
+    evt.target.value='';
+}
+
+/* ══════ ROLL LOG ══════ */
+function toggleRollForm(id){
+    const card = document.getElementById('card-'+id);
+    if(!card.classList.contains('open')) card.classList.add('open');
+    document.getElementById('rof-'+id).classList.toggle('open');
+}
+
+function toggleRolls(id){
+    const list = document.getElementById('rolls-list-'+id);
+    const chev = document.getElementById('rolls-chev-'+id);
+    list.classList.toggle('open');
+    chev.style.transform = list.classList.contains('open') ? 'rotate(90deg)' : '';
+}
+
+function autoRollContract(id){
+    document.getElementById('rof-nat-'+id).value = Math.floor(Math.random()*20)+1;
+}
+
+function attachRoll(id){
+    const sit     = document.getElementById('rof-sit-'+id).value.trim();
+    const skillEl = document.getElementById('rof-skill-'+id);
+    const bonus   = parseInt(skillEl.value);
+    const skill   = skillEl.options[skillEl.selectedIndex].dataset.name;
+    const dc      = parseInt(document.getElementById('rof-dc-'+id).value)||12;
+    const nat     = parseInt(document.getElementById('rof-nat-'+id).value);
+    if(!sit){ document.getElementById('rof-sit-'+id).focus(); return; }
+    if(!nat||nat<1||nat>20){ document.getElementById('rof-nat-'+id).focus(); return; }
+    const modifier = bonus+3;
+    const total    = nat+modifier;
+    const outcome  = nat===20?'nat20':nat===1?'nat1':total>=dc?'success':'failure';
+    const roll = { id:'r-'+Date.now(), date:new Date().toLocaleDateString(), situation:sit, skill, skill_bonus:bonus, dc, natural:nat, modifier, total, outcome };
+    const list = loadContracts();
+    const c = list.find(x=>x.id===id);
+    if(c){
+        if(!c.rolls) c.rolls=[];
+        c.rolls.push(roll);
+        saveContracts(list);
+        renderContracts();
+        setTimeout(()=>{ const card=document.getElementById('card-'+id); if(card){ card.classList.add('open'); const rl=document.getElementById('rolls-list-'+id); if(rl){ rl.classList.add('open'); document.getElementById('rolls-chev-'+id).style.transform='rotate(90deg)'; } } },50);
+    }
+}
+
+initStorage();
+</script>
+</body>
+</html>

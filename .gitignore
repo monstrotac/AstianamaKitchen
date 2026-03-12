@@ -1,0 +1,11 @@
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Editor
+.vscode/
+*.code-workspace
+
+# Contract save data (personal per-user, not part of the app)
+pagieza_contracts.json
