@@ -1249,9 +1249,26 @@ function showAuthed(user){
 
 /* ── Data ── */
 async function fetchContracts(){
-    const { data } = await sb.from('contracts').select('*');
+    const { data, error } = await sb.from('contracts').select('*');
+    if(error){ console.error('fetchContracts:', error); ctNotify('Failed to load contracts: ' + error.message, true); return; }
     contractsCache = data || [];
     renderContracts();
+}
+
+function ctNotify(msg, isError){
+    let el = document.getElementById('ct-notify');
+    if(!el){
+        el = document.createElement('div');
+        el.id = 'ct-notify';
+        el.style.cssText = 'font-family:"Share Tech Mono",monospace;font-size:0.72rem;letter-spacing:0.08em;padding:10px 14px;margin-bottom:14px;border:1px solid;';
+        document.getElementById('ct-authed').insertBefore(el, document.getElementById('ct-authed').querySelector('.panel'));
+    }
+    el.textContent = msg;
+    el.style.borderColor = isError ? 'rgba(220,20,60,0.5)' : 'rgba(74,170,86,0.5)';
+    el.style.color = isError ? 'var(--crimson)' : '#4aaa56';
+    el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(()=>{ el.style.display='none'; }, 6000);
 }
 
 function loadContracts(){ return contractsCache; }
@@ -1271,10 +1288,13 @@ async function addContract(){
     if(!name){ document.getElementById('ct-name').focus(); return; }
     const row = { id:'ct-'+Date.now(), name, classification:cls||'—', priority:prio, status:stat, method, weapon, notes_briefing, notes_intel, notes_exec, notes_exfil, rolls:[], created:new Date().toLocaleDateString() };
     const { data, error } = await sb.from('contracts').insert(row).select().single();
-    if(!error && data){
-        contractsCache.unshift(data);
-        renderContracts();
+    if(error){
+        console.error('addContract:', error);
+        alert('Failed to save contract:\n\n' + error.message + (error.code ? '\nCode: ' + error.code : ''));
+        return;
     }
+    contractsCache.unshift(data);
+    renderContracts();
     ['ct-name','ct-class','ct-notes-briefing','ct-notes-intel','ct-notes-exec','ct-notes-exfil','ct-weapon'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('ct-status').value='active';
     document.getElementById('ct-priority').value='Standard';
@@ -1589,19 +1609,44 @@ async function handleImport(evt){
     const file = evt.target.files[0];
     if(!file) return;
     const reader = new FileReader();
+    reader.onerror = () => alert('Could not read the file.');
     reader.onload = async e => {
-        try {
-            const data = JSON.parse(e.target.result);
-            if(!data.name){ alert('Invalid contract file — no target name found.'); return; }
-            data.id = 'imported-'+Date.now();
-            data.imported = true;
-            if(!data.rolls) data.rolls = [];
-            const { data: inserted, error } = await sb.from('contracts').insert(data).select().single();
-            if(!error && inserted){ contractsCache.unshift(inserted); renderContracts(); }
-        } catch(err){ alert('Could not read contract file.'); }
+        let raw;
+        try { raw = JSON.parse(e.target.result); }
+        catch(err){ alert('File is not valid JSON:\n\n' + err.message); evt.target.value=''; return; }
+        if(!raw.name){ alert('Invalid contract file — no target name found.'); evt.target.value=''; return; }
+        const row = {
+            id: 'imported-'+Date.now(),
+            name: raw.name,
+            classification: raw.classification || '—',
+            priority: raw.priority || 'Standard',
+            status: raw.status || 'active',
+            method: raw.method || 'Unspecified',
+            weapon: raw.weapon || '',
+            notes_briefing: raw.notes_briefing || '',
+            notes_intel: raw.notes_intel || raw.notes || '',
+            notes_exec: raw.notes_exec || '',
+            notes_exfil: raw.notes_exfil || '',
+            created: raw.created || new Date().toLocaleDateString(),
+            closed_approach: raw.closed_approach || null,
+            closed_method: raw.closed_method || null,
+            closed_notes: raw.closed_notes || null,
+            closed_date: raw.closed_date || null,
+            rolls: Array.isArray(raw.rolls) ? raw.rolls : [],
+            imported: true,
+        };
+        const { data: inserted, error } = await sb.from('contracts').insert(row).select().single();
+        if(error){
+            console.error('handleImport:', error);
+            alert('Import failed:\n\n' + error.message + (error.code ? '\nCode: ' + error.code : ''));
+            evt.target.value=''; return;
+        }
+        contractsCache.unshift(inserted);
+        renderContracts();
+        ctNotify('Contract imported.', false);
+        evt.target.value='';
     };
     reader.readAsText(file);
-    evt.target.value='';
 }
 
 /* ══════ ROLL LOG ══════ */
@@ -1772,12 +1817,10 @@ async function attachRoll(id){
 sb.auth.onAuthStateChange(async (event, session) => {
     if(session && session.user){
         showAuthed(session.user);
-        await fetchContracts();
     } else {
         showAuthGate();
-        contractsCache = [];
-        renderContracts();
     }
+    await fetchContracts();
 });
 </script>
 </body>
