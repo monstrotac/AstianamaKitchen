@@ -1234,6 +1234,8 @@ async function authLogin(){
 
 async function authLogout(){
     await sb.auth.signOut();
+    showAuthGate();
+    await fetchContracts();
 }
 
 function showAuthGate(){
@@ -1250,7 +1252,7 @@ function showAuthed(user){
 /* ── Data ── */
 async function fetchContracts(){
     const { data, error } = await sb.from('contracts').select('*');
-    if(error){ console.error('fetchContracts:', error); ctNotify('Failed to load contracts: ' + error.message, true); return; }
+    if(error){ console.error('fetchContracts:', error); return; }
     contractsCache = data || [];
     renderContracts();
 }
@@ -1814,10 +1816,16 @@ async function attachRoll(id){
 }
 
 /* ══════ INIT ══════ */
+let wasAuthed = false;
 sb.auth.onAuthStateChange(async (event, session) => {
     if(session && session.user){
+        wasAuthed = true;
         showAuthed(session.user);
     } else {
+        if(wasAuthed && event === 'SIGNED_OUT'){
+            document.getElementById('auth-error').textContent = 'SESSION EXPIRED — PLEASE LOG IN AGAIN';
+        }
+        wasAuthed = false;
         showAuthGate();
     }
     await fetchContracts();
