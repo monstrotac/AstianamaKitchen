@@ -1715,6 +1715,18 @@ function openContractModal(id){
         { label:'Logged',         val: c.created||'—' },
         ...(c.closed_date ? [{ label:'Closed', val: c.closed_date }] : []),
     ];
+    const harvestHTML = (c.status==='complete'&&c.closed_approach) ? `
+        <div class="ct-modal-rolls">
+            <div class="ct-modal-rolls-title">◆ Harvest Report — Contract Sealed</div>
+            <div class="ct-modal-roll">
+                <div class="ct-modal-roll-top">
+                    <span style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:0.2em;color:rgba(220,20,60,0.45)">APPROACH</span>
+                    <span style="font-family:'Share Tech Mono',monospace;font-size:0.76rem;color:var(--text)">${c.closed_approach}</span>
+                </div>
+                ${c.closed_method&&c.closed_method!=='—'?`<div class="ct-modal-roll-bd">Method / Tool: ${c.closed_method}</div>`:''}
+                ${c.closed_notes?`<div class="ct-modal-roll-bd" style="margin-top:8px;color:var(--text);line-height:1.7;white-space:pre-wrap">${c.closed_notes}</div>`:''}
+            </div>
+        </div>` : '';
     const rollsHTML = (c.rolls&&c.rolls.length) ? `
         <div class="ct-modal-rolls">
             <div class="ct-modal-rolls-title">◆ Mission Roll Log — ${c.rolls.length} Recorded</div>
@@ -1749,6 +1761,7 @@ function openContractModal(id){
                         <div class="ct-modal-ptext ${p.text?'':'ct-modal-pempty'}">${p.text||'Nothing logged.'}</div>
                     </div>`).join('')}
                 </div>
+                ${harvestHTML}
                 ${rollsHTML}
             </div>
         </div>`;
