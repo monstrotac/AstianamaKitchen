@@ -864,80 +864,101 @@
 
     <!-- ══════════════ CONTRACTS ══════════════ -->
     <div id="tab-contracts" class="tab-pane">
-        <div id="file-status-bar" class="file-bar">
-            <span class="file-icon">◈</span>
-            <span id="file-status-label">NO SAVE FILE LINKED — DATA STORED IN BROWSER ONLY</span>
-            <button id="file-reconnect-btn" class="file-btn green" onclick="reconnectFile()" style="display:none">◆ Reconnect</button>
-            <button class="file-btn green" onclick="triggerImport()">◆ Import Contract</button>
-            <button id="file-link-btn" class="file-btn" onclick="linkSaveFile()">◆ Link Save File</button>
-            <input type="file" id="import-input" accept=".json" style="display:none" onchange="handleImport(event)">
-        </div>
 
-        <div class="panel">
-            <div class="panel-title">Log New Contract</div>
-            <div class="ct-form">
-                <div>
-                    <label class="field-label">Target Name</label>
-                    <input class="ct-input" id="ct-name" type="text" placeholder="Full name or designation…" autocomplete="off">
+        <!-- ── Auth gate (shown when not logged in) ── -->
+        <div id="ct-auth-gate">
+            <div class="panel" style="max-width:440px;margin:64px auto 0">
+                <div class="panel-title">Clearance Required</div>
+                <div style="padding:18px 0 6px">
+                    <label class="field-label">Email</label>
+                    <input class="ct-input" id="auth-email" type="email" placeholder="operative@domain.com" autocomplete="email">
                 </div>
-                <div>
-                    <label class="field-label">Classification / Role</label>
-                    <input class="ct-input" id="ct-class" type="text" placeholder="e.g. Velocity Inhibitor…" autocomplete="off">
+                <div style="padding:6px 0 4px">
+                    <label class="field-label">Passphrase</label>
+                    <input class="ct-input" id="auth-pass" type="password" placeholder="••••••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()">
                 </div>
-                <div>
-                    <label class="field-label">Priority</label>
-                    <select class="sel" id="ct-priority">
-                        <option value="Standard">Standard</option>
-                        <option value="Priority">Priority</option>
-                        <option value="Critical">Critical</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="field-label">Requested Method</label>
-                    <select class="sel" id="ct-method">
-                        <option value="Unspecified">Unspecified</option>
-                        <option value="Silent Kill">Silent Kill</option>
-                        <option value="Public Elimination">Public Elimination</option>
-                        <option value="Blackmail">Blackmail</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="field-label">Requested Weapon</label>
-                    <input class="ct-input" id="ct-weapon" type="text" placeholder="e.g. Vibroblade, Poison, Force…" autocomplete="off">
-                </div>
-                <div>
-                    <label class="field-label">Status</label>
-                    <select class="sel" id="ct-status">
-                        <option value="active">Active</option>
-                        <option value="pending">Pending</option>
-                        <option value="complete">Complete</option>
-                        <option value="compromised">Compromised</option>
-                    </select>
-                </div>
-                <div class="full">
-                    <label class="field-label">◆ Briefing</label>
-                    <textarea class="ct-textarea" id="ct-notes-briefing" placeholder="Client identity, stated objective, terms, context…"></textarea>
-                </div>
-                <div class="full">
-                    <label class="field-label">◆ I — Information Gathering</label>
-                    <textarea class="ct-textarea" id="ct-notes-intel" placeholder="Known location, habits, guard detail, client details…"></textarea>
-                </div>
-                <div class="full">
-                    <label class="field-label">◆ II — Execution</label>
-                    <textarea class="ct-textarea" id="ct-notes-exec" placeholder="Method, approach, timing, tools…"></textarea>
-                </div>
-                <div class="full">
-                    <label class="field-label">◆ III — Exfiltration</label>
-                    <textarea class="ct-textarea" id="ct-notes-exfil" placeholder="Escape route, cover identity, contingencies…"></textarea>
-                </div>
-                <button class="ct-add-btn" onclick="addContract()">◆ Open Contract ◆</button>
+                <div id="auth-error" style="color:var(--crimson);font-family:'Share Tech Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;min-height:18px;padding:4px 0 8px"></div>
+                <button class="ct-add-btn" id="auth-btn" onclick="authLogin()">◆ Access the Registry ◆</button>
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-title">Contract Registry</div>
-            <div id="ct-list" class="ct-list"></div>
+        <!-- ── Authenticated view ── -->
+        <div id="ct-authed" style="display:none">
+            <div class="file-bar">
+                <span class="file-icon">◈</span>
+                <span id="ct-auth-label" style="flex:1;font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:rgba(74,170,86,0.75);letter-spacing:0.1em"></span>
+                <button class="file-btn green" onclick="triggerImport()">◆ Import Contract</button>
+                <input type="file" id="import-input" accept=".json" style="display:none" onchange="handleImport(event)">
+                <button class="file-btn" onclick="authLogout()">◆ Log Out</button>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Log New Contract</div>
+                <div class="ct-form">
+                    <div>
+                        <label class="field-label">Target Name</label>
+                        <input class="ct-input" id="ct-name" type="text" placeholder="Full name or designation…" autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="field-label">Classification / Role</label>
+                        <input class="ct-input" id="ct-class" type="text" placeholder="e.g. Velocity Inhibitor…" autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="field-label">Priority</label>
+                        <select class="sel" id="ct-priority">
+                            <option value="Standard">Standard</option>
+                            <option value="Priority">Priority</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">Requested Method</label>
+                        <select class="sel" id="ct-method">
+                            <option value="Unspecified">Unspecified</option>
+                            <option value="Silent Kill">Silent Kill</option>
+                            <option value="Public Elimination">Public Elimination</option>
+                            <option value="Blackmail">Blackmail</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">Requested Weapon</label>
+                        <input class="ct-input" id="ct-weapon" type="text" placeholder="e.g. Vibroblade, Poison, Force…" autocomplete="off">
+                    </div>
+                    <div>
+                        <label class="field-label">Status</label>
+                        <select class="sel" id="ct-status">
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="complete">Complete</option>
+                            <option value="compromised">Compromised</option>
+                        </select>
+                    </div>
+                    <div class="full">
+                        <label class="field-label">◆ Briefing</label>
+                        <textarea class="ct-textarea" id="ct-notes-briefing" placeholder="Client identity, stated objective, terms, context…"></textarea>
+                    </div>
+                    <div class="full">
+                        <label class="field-label">◆ I — Information Gathering</label>
+                        <textarea class="ct-textarea" id="ct-notes-intel" placeholder="Known location, habits, guard detail, client details…"></textarea>
+                    </div>
+                    <div class="full">
+                        <label class="field-label">◆ II — Execution</label>
+                        <textarea class="ct-textarea" id="ct-notes-exec" placeholder="Method, approach, timing, tools…"></textarea>
+                    </div>
+                    <div class="full">
+                        <label class="field-label">◆ III — Exfiltration</label>
+                        <textarea class="ct-textarea" id="ct-notes-exfil" placeholder="Escape route, cover identity, contingencies…"></textarea>
+                    </div>
+                    <button class="ct-add-btn" onclick="addContract()">◆ Open Contract ◆</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Contract Registry</div>
+                <div id="ct-list" class="ct-list"></div>
+            </div>
         </div>
+
     </div>
 
     <!-- ══════════════ CODEX ══════════════ -->
@@ -1015,6 +1036,7 @@
     <footer>◆ PAGIEZA — THE POISON BLADE ◆ // SITH ORDER // CHANNEL ENCRYPTED // ALL TRANSMISSIONS DISTORTED ◆</footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 /* ══════ STARFIELD ══════ */
 const cv = document.getElementById('starfield');
@@ -1188,189 +1210,106 @@ function rollDie(){
 
 updateMods(); updateDC();
 
-/* ══════ CONTRACTS — FILE STORAGE ══════ */
-const SEED = [];
+/* ══════ CONTRACTS — SUPABASE ══════ */
+const SUPABASE_URL  = 'https://iqabkhnehtsgiaqonihe.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxYWJraG5laHRzZ2lhcW9uaWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNDAyMDIsImV4cCI6MjA4ODkxNjIwMn0.uOcnhkF2kIoo2tvZZvfchfqgoqigHad58VPT8QQZxlA';
 
-let fileHandle = null;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+let contractsCache = [];
 
-/* IndexedDB helpers — stores the file handle across sessions */
-function openDB(){
-    return new Promise((res,rej)=>{
-        const r = indexedDB.open('pagieza_db',1);
-        r.onupgradeneeded = e => e.target.result.createObjectStore('kv');
-        r.onsuccess = e => res(e.target.result);
-        r.onerror   = e => rej(e);
-    });
-}
-async function dbPut(key,val){
-    const db = await openDB();
-    return new Promise((res,rej)=>{ const tx=db.transaction('kv','readwrite'); tx.objectStore('kv').put(val,key); tx.oncomplete=res; tx.onerror=rej; });
-}
-async function dbGet(key){
-    const db = await openDB();
-    return new Promise((res,rej)=>{ const tx=db.transaction('kv','readonly'); const r=tx.objectStore('kv').get(key); r.onsuccess=e=>res(e.target.result); r.onerror=rej; });
-}
-
-function setFileStatus(linked, name){
-    const bar  = document.getElementById('file-status-bar');
-    const lbl  = document.getElementById('file-status-label');
-    const link = document.getElementById('file-link-btn');
-    const rec  = document.getElementById('file-reconnect-btn');
-    if(linked){
-        bar.className='file-bar linked';
-        lbl.textContent='SAVE FILE LINKED — '+(name||'pagieza_contracts.json');
-        link.textContent='◆ Relink File';
-        rec.style.display='none';
-    } else {
-        bar.className='file-bar';
-        lbl.textContent='NO SAVE FILE LINKED — DATA STORED IN BROWSER ONLY';
-        link.textContent='◆ Link Save File';
-    }
+/* ── Auth ── */
+async function authLogin(){
+    const email = document.getElementById('auth-email').value.trim();
+    const pass  = document.getElementById('auth-pass').value;
+    const errEl = document.getElementById('auth-error');
+    const btn   = document.getElementById('auth-btn');
+    errEl.textContent = '';
+    btn.textContent = '… AUTHENTICATING …';
+    btn.disabled = true;
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    btn.disabled = false;
+    btn.textContent = '◆ Access the Registry ◆';
+    if(error){ errEl.textContent = 'ACCESS DENIED — ' + error.message.toUpperCase(); }
 }
 
-async function linkSaveFile(){
-    if(!window.showSaveFilePicker){
-        alert('File System Access API is not supported in this browser.\nPlease use Chrome or Edge.');
-        return;
-    }
-    try {
-        const h = await window.showSaveFilePicker({
-            suggestedName: 'pagieza_contracts.json',
-            types: [{ description: 'JSON Contract Registry', accept: { 'application/json': ['.json'] } }]
-        });
-        fileHandle = h;
-        await dbPut('fileHandle', h);
-        await saveToFile();
-        setFileStatus(true, h.name);
-    } catch(e){ /* user cancelled */ }
+async function authLogout(){
+    await sb.auth.signOut();
 }
 
-async function saveToFile(){
-    if(!fileHandle) return;
-    try {
-        const perm = await fileHandle.requestPermission({ mode:'readwrite' });
-        if(perm !== 'granted') return;
-        const w = await fileHandle.createWritable();
-        await w.write(JSON.stringify(loadContracts(), null, 2));
-        await w.close();
-    } catch(e){ console.warn('File save failed:', e); }
+function showAuthGate(){
+    document.getElementById('ct-auth-gate').style.display = '';
+    document.getElementById('ct-authed').style.display = 'none';
 }
 
-async function readFromFile(h){
-    try {
-        const f = await h.getFile();
-        return JSON.parse(await f.text());
-    } catch(e){ return null; }
+function showAuthed(user){
+    document.getElementById('ct-auth-gate').style.display = 'none';
+    document.getElementById('ct-authed').style.display = '';
+    document.getElementById('ct-auth-label').textContent = 'AUTHENTICATED — ' + user.email.toUpperCase();
 }
 
-async function reconnectFile(){
-    if(!fileHandle) return;
-    try {
-        const perm = await fileHandle.requestPermission({ mode:'readwrite' });
-        if(perm === 'granted'){
-            const data = await readFromFile(fileHandle);
-            if(data){
-                localStorage.setItem('pagieza_contracts', JSON.stringify(data));
-                setFileStatus(true, fileHandle.name);
-                document.getElementById('file-reconnect-btn').style.display='none';
-                renderContracts();
-            }
-        }
-    } catch(e){}
-}
-
-async function initStorage(){
-    try {
-        const h = await dbGet('fileHandle');
-        if(h){
-            fileHandle = h;
-            const perm = await h.queryPermission({ mode:'readwrite' });
-            if(perm === 'granted'){
-                const data = await readFromFile(h);
-                if(data){ localStorage.setItem('pagieza_contracts', JSON.stringify(data)); setFileStatus(true, h.name); }
-            } else {
-                /* Need a user gesture to re-request permission */
-                setFileStatus(false);
-                document.getElementById('file-reconnect-btn').style.display='inline-block';
-                document.getElementById('file-status-label').textContent='SAVE FILE FOUND — CLICK RECONNECT TO LOAD';
-            }
-        } else {
-            setFileStatus(false);
-        }
-    } catch(e){ setFileStatus(false); }
+/* ── Data ── */
+async function fetchContracts(){
+    const { data } = await sb.from('contracts').select('*');
+    contractsCache = data || [];
     renderContracts();
 }
 
-function loadContracts(){
-    const raw = localStorage.getItem('pagieza_contracts');
-    if(!raw){ localStorage.setItem('pagieza_contracts', JSON.stringify(SEED)); return SEED; }
-    return JSON.parse(raw);
-}
-function saveContracts(list){
-    localStorage.setItem('pagieza_contracts', JSON.stringify(list));
-    saveToFile(); /* async fire-and-forget */
-}
+function loadContracts(){ return contractsCache; }
 
-function addContract(){
-    const name        = document.getElementById('ct-name').value.trim();
-    const cls         = document.getElementById('ct-class').value.trim();
-    const prio        = document.getElementById('ct-priority').value;
-    const stat        = document.getElementById('ct-status').value;
+/* ── CRUD ── */
+async function addContract(){
+    const name           = document.getElementById('ct-name').value.trim();
+    const cls            = document.getElementById('ct-class').value.trim();
+    const prio           = document.getElementById('ct-priority').value;
+    const stat           = document.getElementById('ct-status').value;
     const notes_briefing = document.getElementById('ct-notes-briefing').value.trim();
     const notes_intel    = document.getElementById('ct-notes-intel').value.trim();
     const notes_exec     = document.getElementById('ct-notes-exec').value.trim();
     const notes_exfil    = document.getElementById('ct-notes-exfil').value.trim();
     const method         = document.getElementById('ct-method').value;
     const weapon         = document.getElementById('ct-weapon').value.trim();
-    if(!name) { document.getElementById('ct-name').focus(); return; }
-    const list = loadContracts();
-    list.unshift({ id:'ct-'+Date.now(), name, classification:cls||'—', priority:prio, status:stat, method, weapon, notes_briefing, notes_intel, notes_exec, notes_exfil, created:new Date().toLocaleDateString() });
-    saveContracts(list);
-    document.getElementById('ct-name').value='';
-    document.getElementById('ct-class').value='';
-    document.getElementById('ct-notes-briefing').value='';
-    document.getElementById('ct-notes-intel').value='';
-    document.getElementById('ct-notes-exec').value='';
-    document.getElementById('ct-notes-exfil').value='';
+    if(!name){ document.getElementById('ct-name').focus(); return; }
+    const row = { id:'ct-'+Date.now(), name, classification:cls||'—', priority:prio, status:stat, method, weapon, notes_briefing, notes_intel, notes_exec, notes_exfil, rolls:[], created:new Date().toLocaleDateString() };
+    const { data, error } = await sb.from('contracts').insert(row).select().single();
+    if(!error && data){
+        contractsCache.unshift(data);
+        renderContracts();
+    }
+    ['ct-name','ct-class','ct-notes-briefing','ct-notes-intel','ct-notes-exec','ct-notes-exfil','ct-weapon'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('ct-status').value='active';
     document.getElementById('ct-priority').value='Standard';
     document.getElementById('ct-method').value='Unspecified';
-    document.getElementById('ct-weapon').value='';
+}
+
+async function deleteContract(id){
+    await sb.from('contracts').delete().eq('id', id);
+    contractsCache = contractsCache.filter(c=>c.id!==id);
     renderContracts();
 }
 
-function deleteContract(id){
-    const list = loadContracts().filter(c=>c.id!==id);
-    saveContracts(list);
-    renderContracts();
+async function changeStatus(id, status){
+    await sb.from('contracts').update({ status }).eq('id', id);
+    const c = contractsCache.find(x=>x.id===id);
+    if(c){ c.status = status; renderContracts(); }
 }
 
-function changeStatus(id, status){
-    const list = loadContracts();
-    const c = list.find(x=>x.id===id);
-    if(c){ c.status=status; saveContracts(list); renderContracts(); }
+async function changePriority(id, priority){
+    await sb.from('contracts').update({ priority }).eq('id', id);
+    const c = contractsCache.find(x=>x.id===id);
+    if(c){ c.priority = priority; renderContracts(); }
 }
 
-function changePriority(id, priority){
-    const list = loadContracts();
-    const c = list.find(x=>x.id===id);
-    if(c){ c.priority=priority; saveContracts(list); renderContracts(); }
-}
-
-function changeMethod(id, method){
-    const list = loadContracts();
-    const c = list.find(x=>x.id===id);
-    if(c){ c.method=method; saveContracts(list); renderContracts(); }
+async function changeMethod(id, method){
+    await sb.from('contracts').update({ method }).eq('id', id);
+    const c = contractsCache.find(x=>x.id===id);
+    if(c){ c.method = method; renderContracts(); }
 }
 
 function updateContractDC(id){
     const sel = document.getElementById('rof-dc-sel-'+id);
     const inp = document.getElementById('rof-dc-'+id);
-    if(sel.value==='custom'){
-        inp.style.display='block'; inp.focus();
-    } else {
-        inp.style.display='none'; inp.value=sel.value;
-    }
+    if(sel.value==='custom'){ inp.style.display='block'; inp.focus(); }
+    else { inp.style.display='none'; inp.value=sel.value; }
 }
 
 function openNoteEdit(id){
@@ -1382,48 +1321,35 @@ function openNoteEdit(id){
         document.getElementById('ct-edit-intel-'+id).focus();
         btn.textContent='◆ Save Notes';
     } else {
-        const list = loadContracts();
-        const c = list.find(x=>x.id===id);
+        const c = contractsCache.find(x=>x.id===id);
         if(c){
-            c.weapon          = document.getElementById('ct-edit-weapon-'+id).value.trim();
-            c.notes_briefing  = document.getElementById('ct-edit-briefing-'+id).value;
-            c.notes_intel     = document.getElementById('ct-edit-intel-'+id).value;
-            c.notes_exec      = document.getElementById('ct-edit-exec-'+id).value;
-            c.notes_exfil     = document.getElementById('ct-edit-exfil-'+id).value;
-            saveContracts(list); renderContracts();
+            c.weapon         = document.getElementById('ct-edit-weapon-'+id).value.trim();
+            c.notes_briefing = document.getElementById('ct-edit-briefing-'+id).value;
+            c.notes_intel    = document.getElementById('ct-edit-intel-'+id).value;
+            c.notes_exec     = document.getElementById('ct-edit-exec-'+id).value;
+            c.notes_exfil    = document.getElementById('ct-edit-exfil-'+id).value;
+            sb.from('contracts').update({ weapon:c.weapon, notes_briefing:c.notes_briefing, notes_intel:c.notes_intel, notes_exec:c.notes_exec, notes_exfil:c.notes_exfil }).eq('id', id);
+            renderContracts();
         }
     }
 }
 
-function toggleCard(id){
-    const card = document.getElementById('card-'+id);
-    card.classList.toggle('open');
-}
+function toggleCard(id){ document.getElementById('card-'+id).classList.toggle('open'); }
 
 function toggleCloseForm(id){
     const card = document.getElementById('card-'+id);
     if(!card.classList.contains('open')) card.classList.add('open');
-    const form = document.getElementById('clf-'+id);
-    form.classList.toggle('open');
+    document.getElementById('clf-'+id).classList.toggle('open');
 }
 
-function saveClose(id){
+async function saveClose(id){
     const approach = document.getElementById('clf-approach-'+id).value;
     const method   = document.getElementById('clf-method-'+id).value.trim();
     const notes    = document.getElementById('clf-notes-'+id).value.trim();
-    const list = loadContracts();
-    const c = list.find(x=>x.id===id);
-    if(c){
-        c.status         = 'complete';
-        c.closed_approach = approach;
-        c.closed_method   = method || '—';
-        c.closed_notes    = notes;
-        c.closed_date     = new Date().toLocaleDateString();
-        saveContracts(list);
-        renderContracts();
-        // re-open the card so user sees the report
-        setTimeout(()=>{ const card=document.getElementById('card-'+id); if(card) card.classList.add('open'); },50);
-    }
+    const updates  = { status:'complete', closed_approach:approach, closed_method:method||'—', closed_notes:notes, closed_date:new Date().toLocaleDateString() };
+    await sb.from('contracts').update(updates).eq('id', id);
+    const c = contractsCache.find(x=>x.id===id);
+    if(c){ Object.assign(c, updates); renderContracts(); setTimeout(()=>{ const card=document.getElementById('card-'+id); if(card) card.classList.add('open'); },50); }
 }
 
 const STATUS_LABELS = { active:'Active', pending:'Pending', complete:'Complete', compromised:'Compromised' };
@@ -1648,36 +1574,31 @@ function renderContracts(){
 
 /* ══════ EXPORT / IMPORT ══════ */
 function exportContract(id){
-    const c = loadContracts().find(x=>x.id===id);
+    const c = contractsCache.find(x=>x.id===id);
     if(!c) return;
-    const blob = new Blob([JSON.stringify(c,null,2)], {type:'application/json'});
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = 'pagieza_contract_'+c.name.replace(/[^a-z0-9]/gi,'_').toLowerCase().slice(0,40)+'.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    const blob = new Blob([JSON.stringify(c,null,2)],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='pagieza_contract_'+c.name.replace(/[^a-z0-9]/gi,'_').toLowerCase().slice(0,40)+'.json';
+    a.click(); URL.revokeObjectURL(url);
 }
 
-function triggerImport(){
-    document.getElementById('import-input').click();
-}
+function triggerImport(){ document.getElementById('import-input').click(); }
 
-function handleImport(evt){
+async function handleImport(evt){
     const file = evt.target.files[0];
     if(!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
         try {
             const data = JSON.parse(e.target.result);
-            if(!data.name) { alert('Invalid contract file — no target name found.'); return; }
+            if(!data.name){ alert('Invalid contract file — no target name found.'); return; }
             data.id = 'imported-'+Date.now();
             data.imported = true;
-            const list = loadContracts();
-            list.unshift(data);
-            saveContracts(list);
-            renderContracts();
-        } catch(err){ alert('Could not read contract file. Ensure it is a valid Pagieza export.'); }
+            if(!data.rolls) data.rolls = [];
+            const { data: inserted, error } = await sb.from('contracts').insert(data).select().single();
+            if(!error && inserted){ contractsCache.unshift(inserted); renderContracts(); }
+        } catch(err){ alert('Could not read contract file.'); }
     };
     reader.readAsText(file);
     evt.target.value='';
@@ -1823,7 +1744,7 @@ function rollForContract(id){
     }, 55);
 }
 
-function attachRoll(id){
+async function attachRoll(id){
     const sit     = document.getElementById('rof-sit-'+id).value.trim();
     const skillEl = document.getElementById('rof-skill-'+id);
     const bonus   = parseInt(skillEl.value);
@@ -1837,18 +1758,27 @@ function attachRoll(id){
     const total    = nat+modifier;
     const outcome  = nat===20?'nat20':nat===1?'nat1':total>=dc?'success':'failure';
     const roll = { id:'r-'+Date.now(), date:new Date().toLocaleDateString(), situation:sit, skill, skill_bonus:bonus, dc, natural:nat, modifier, total, outcome };
-    const list = loadContracts();
-    const c = list.find(x=>x.id===id);
+    const c = contractsCache.find(x=>x.id===id);
     if(c){
         if(!c.rolls) c.rolls=[];
         c.rolls.push(roll);
-        saveContracts(list);
+        await sb.from('contracts').update({ rolls: c.rolls }).eq('id', id);
         renderContracts();
         setTimeout(()=>{ const card=document.getElementById('card-'+id); if(card){ card.classList.add('open'); const rl=document.getElementById('rolls-list-'+id); if(rl){ rl.classList.add('open'); document.getElementById('rolls-chev-'+id).style.transform='rotate(90deg)'; } } },50);
     }
 }
 
-initStorage();
+/* ══════ INIT ══════ */
+sb.auth.onAuthStateChange(async (event, session) => {
+    if(session && session.user){
+        showAuthed(session.user);
+        await fetchContracts();
+    } else {
+        showAuthGate();
+        contractsCache = [];
+        renderContracts();
+    }
+});
 </script>
 </body>
 </html>
