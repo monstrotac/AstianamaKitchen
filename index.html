@@ -1245,6 +1245,24 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let contractsCache = [];
 
 /* ── Auth ── */
+function clearSessionStorage(){
+    Object.keys(localStorage).filter(k=>k.startsWith('sb-')).forEach(k=>localStorage.removeItem(k));
+}
+
+function handleSessionExpiry(){
+    clearSessionStorage();
+    wasAuthed = false;
+    contractsCache = [];
+    showAuthGate();
+    document.getElementById('auth-error').textContent = 'SESSION EXPIRED — PLEASE LOG IN AGAIN';
+}
+
+function isAuthError(err){
+    if(!err) return false;
+    return err.status === 401 || err.code === 'PGRST301' ||
+           /jwt expired|not authenticated|invalid.*token|session.*expired/i.test(String(err.message));
+}
+
 async function authLogin(){
     const email = document.getElementById('auth-email').value.trim();
     const pass  = document.getElementById('auth-pass').value;
@@ -1261,10 +1279,11 @@ async function authLogin(){
 
 async function authLogout(){
     try { await sb.auth.signOut(); } catch(e){ console.warn('signOut:', e); }
-    Object.keys(localStorage).filter(k=>k.startsWith('sb-')).forEach(k=>localStorage.removeItem(k));
+    clearSessionStorage();
     wasAuthed = false;
+    contractsCache = [];
+    renderContracts();
     showAuthGate();
-    await fetchContracts();
 }
 
 function showAuthGate(){
@@ -1281,7 +1300,11 @@ function showAuthed(user){
 /* ── Data ── */
 async function fetchContracts(){
     const { data, error } = await sb.from('contracts').select('*');
-    if(error){ console.error('fetchContracts:', error); return; }
+    if(error){
+        if(isAuthError(error)){ handleSessionExpiry(); return; }
+        console.error('fetchContracts:', error);
+        return;
+    }
     contractsCache = data || [];
     renderContracts();
 }
@@ -1320,8 +1343,9 @@ async function addContract(){
     const row = { id:'ct-'+Date.now(), name, classification:cls||'—', priority:prio, status:stat, method, weapon, notes_briefing, notes_intel, notes_exec, notes_exfil, rolls:[], created:new Date().toLocaleDateString() };
     const { data, error } = await sb.from('contracts').insert(row).select().single();
     if(error){
+        if(isAuthError(error)){ handleSessionExpiry(); return; }
         console.error('addContract:', error);
-        alert('Failed to save contract:\n\n' + error.message + (error.code ? '\nCode: ' + error.code : ''));
+        ctNotify('CONTRACT SAVE FAILED — ' + error.message, true);
         return;
     }
     contractsCache.unshift(data);
@@ -1333,25 +1357,29 @@ async function addContract(){
 }
 
 async function deleteContract(id){
-    await sb.from('contracts').delete().eq('id', id);
+    const { error } = await sb.from('contracts').delete().eq('id', id);
+    if(error){ if(isAuthError(error)){ handleSessionExpiry(); return; } ctNotify('DELETE FAILED — ' + error.message, true); return; }
     contractsCache = contractsCache.filter(c=>c.id!==id);
     renderContracts();
 }
 
 async function changeStatus(id, status){
-    await sb.from('contracts').update({ status }).eq('id', id);
+    const { error } = await sb.from('contracts').update({ status }).eq('id', id);
+    if(error){ if(isAuthError(error)){ handleSessionExpiry(); return; } ctNotify('UPDATE FAILED — ' + error.message, true); return; }
     const c = contractsCache.find(x=>x.id===id);
     if(c){ c.status = status; renderContracts(); }
 }
 
 async function changePriority(id, priority){
-    await sb.from('contracts').update({ priority }).eq('id', id);
+    const { error } = await sb.from('contracts').update({ priority }).eq('id', id);
+    if(error){ if(isAuthError(error)){ handleSessionExpiry(); return; } ctNotify('UPDATE FAILED — ' + error.message, true); return; }
     const c = contractsCache.find(x=>x.id===id);
     if(c){ c.priority = priority; renderContracts(); }
 }
 
 async function changeMethod(id, method){
-    await sb.from('contracts').update({ method }).eq('id', id);
+    const { error } = await sb.from('contracts').update({ method }).eq('id', id);
+    if(error){ if(isAuthError(error)){ handleSessionExpiry(); return; } ctNotify('UPDATE FAILED — ' + error.message, true); return; }
     const c = contractsCache.find(x=>x.id===id);
     if(c){ c.method = method; renderContracts(); }
 }
@@ -1363,7 +1391,7 @@ function updateContractDC(id){
     else { inp.style.display='none'; inp.value=sel.value; }
 }
 
-function openNoteEdit(id){
+async function openNoteEdit(id){
     const panel = document.getElementById('ct-edit-'+id);
     const view  = document.getElementById('ct-view-'+id);
     const btn   = document.getElementById('ct-notebtn-'+id);
@@ -1379,8 +1407,10 @@ function openNoteEdit(id){
             c.notes_intel    = document.getElementById('ct-edit-intel-'+id).value;
             c.notes_exec     = document.getElementById('ct-edit-exec-'+id).value;
             c.notes_exfil    = document.getElementById('ct-edit-exfil-'+id).value;
-            sb.from('contracts').update({ weapon:c.weapon, notes_briefing:c.notes_briefing, notes_intel:c.notes_intel, notes_exec:c.notes_exec, notes_exfil:c.notes_exfil }).eq('id', id);
+            const { error } = await sb.from('contracts').update({ weapon:c.weapon, notes_briefing:c.notes_briefing, notes_intel:c.notes_intel, notes_exec:c.notes_exec, notes_exfil:c.notes_exfil }).eq('id', id);
+            if(error){ if(isAuthError(error)){ handleSessionExpiry(); return; } ctNotify('SAVE FAILED — ' + error.message, true); return; }
             renderContracts();
+            ctNotify('NOTES SAVED', false);
         }
     }
 }
@@ -1398,7 +1428,8 @@ async function saveClose(id){
     const method   = document.getElementById('clf-method-'+id).value.trim();
     const notes    = document.getElementById('clf-notes-'+id).value.trim();
     const updates  = { status:'complete', closed_approach:approach, closed_method:method||'—', closed_notes:notes, closed_date:new Date().toLocaleDateString() };
-    await sb.from('contracts').update(updates).eq('id', id);
+    const { error } = await sb.from('contracts').update(updates).eq('id', id);
+    if(error){ if(isAuthError(error)){ handleSessionExpiry(); return; } ctNotify('CLOSE FAILED — ' + error.message, true); return; }
     const c = contractsCache.find(x=>x.id===id);
     if(c){ Object.assign(c, updates); renderContracts(); setTimeout(()=>{ const card=document.getElementById('card-'+id); if(card) card.classList.add('open'); },50); }
 }
@@ -1856,7 +1887,8 @@ async function attachRoll(id){
     if(c){
         if(!c.rolls) c.rolls=[];
         c.rolls.push(roll);
-        await sb.from('contracts').update({ rolls: c.rolls }).eq('id', id);
+        const { error: rollErr } = await sb.from('contracts').update({ rolls: c.rolls }).eq('id', id);
+        if(rollErr){ if(isAuthError(rollErr)){ handleSessionExpiry(); return; } ctNotify('ROLL SAVE FAILED — ' + rollErr.message, true); c.rolls.pop(); return; }
         renderContracts();
         setTimeout(()=>{ const card=document.getElementById('card-'+id); if(card){ card.classList.add('open'); const rl=document.getElementById('rolls-list-'+id); if(rl){ rl.classList.add('open'); document.getElementById('rolls-chev-'+id).style.transform='rotate(90deg)'; } } },50);
     }
@@ -1864,20 +1896,44 @@ async function attachRoll(id){
 
 /* ══════ INIT ══════ */
 let wasAuthed = false;
-sb.auth.onAuthStateChange(async (event, session) => {
-    if(session && session.user){
+
+// Mid-session changes only — INITIAL_SESSION handled explicitly below
+sb.auth.onAuthStateChange((event, session) => {
+    if(event === 'SIGNED_IN' && session){
         wasAuthed = true;
         showAuthed(session.user);
-    } else {
-        Object.keys(localStorage).filter(k=>k.startsWith('sb-')).forEach(k=>localStorage.removeItem(k));
-        if(wasAuthed){
+    } else if(event === 'TOKEN_REFRESHED' && session){
+        wasAuthed = true;
+        showAuthed(session.user);
+    } else if(event === 'SIGNED_OUT'){
+        const wasLoggedIn = wasAuthed;
+        clearSessionStorage();
+        wasAuthed = false;
+        showAuthGate();
+        if(wasLoggedIn){
             document.getElementById('auth-error').textContent = 'SESSION EXPIRED — PLEASE LOG IN AGAIN';
         }
-        wasAuthed = false;
+        fetchContracts();
+    }
+});
+
+// Page load: use getSession() to verify and auto-refresh the stored token
+(async () => {
+    try {
+        const { data: { session }, error } = await sb.auth.getSession();
+        if(error || !session){
+            clearSessionStorage();
+            showAuthGate();
+        } else {
+            wasAuthed = true;
+            showAuthed(session.user);
+        }
+    } catch(e) {
+        clearSessionStorage();
         showAuthGate();
     }
     await fetchContracts();
-});
+})();
 </script>
 </body>
 </html>
