@@ -1869,7 +1869,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
         wasAuthed = true;
         showAuthed(session.user);
     } else {
-        if(wasAuthed && event === 'SIGNED_OUT'){
+        Object.keys(localStorage).filter(k=>k.startsWith('sb-')).forEach(k=>localStorage.removeItem(k));
+        if(wasAuthed){
             document.getElementById('auth-error').textContent = 'SESSION EXPIRED — PLEASE LOG IN AGAIN';
         }
         wasAuthed = false;
