@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(psql -U postgres -c \"\\\\l\")",
+      "Bash(mkdir -p uploads)",
+      "Bash(touch uploads/.gitkeep)",
+      "Bash(node src/db/migrate.js)",
+      "Read(//j//**)",
+      "Read(//j/Core file locations/Desktop/**)",
+      "Read(//j/Core file locations/**)"
+    ],
+    "additionalDirectories": [
+      "j:\\Core file locations\\Desktop\\AstianamaKitchen"
+    ]
+  }
+}
