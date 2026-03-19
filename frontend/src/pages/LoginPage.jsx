@@ -67,12 +67,12 @@ export default function LoginPage() {
         <div className="s-login-form">
           {isRegister && (
             <div className="s-form-row">
-              <label className="s-label">Code Name</label>
+              <label className="s-label">Username</label>
               <input
                 className="s-input"
                 value={codeName}
                 onChange={e => setCode(e.target.value)}
-                placeholder="Choose an operative name…"
+                placeholder="Choose a username…"
                 autoComplete="off"
               />
             </div>

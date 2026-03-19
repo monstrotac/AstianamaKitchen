@@ -65,8 +65,8 @@ async function register(req, res) {
   const hash = await bcrypt.hash(password, 12);
   try {
     const { rows: [user] } = await pool.query(
-      `INSERT INTO users (email, password_hash, code_name, role, faction)
-       VALUES ($1, $2, $3, 'guest', NULL) RETURNING id, email, code_name, role`,
+      `INSERT INTO users (email, password_hash, code_name, role)
+       VALUES ($1, $2, $3, 'guest') RETURNING id, email, code_name, role`,
       [email.toLowerCase().trim(), hash, codeName.trim()]
     );
 
