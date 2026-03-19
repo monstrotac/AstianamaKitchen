@@ -140,7 +140,7 @@ export function getRollBonus({ rollType, attrKey, saveKey, attrs = {}, skills = 
     const linked   = sk?.attribute || attrKey || 'str';
     const attrMod  = ATTR_MOD(attrs[linked] ?? -2);
     const skillRank = sk?.rank ?? 0;
-    return { attrMod, skillRank, total: attrMod + skillRank, label: skillKey || 'Attack' };
+    return { attrMod, skillRank, total: attrMod + skillRank * 2, label: skillKey || 'Attack' };
   }
 
   if (rollType === 'attribute') {
@@ -154,7 +154,7 @@ export function getRollBonus({ rollType, attrKey, saveKey, attrs = {}, skills = 
     const linked   = sk?.attribute || attrKey || 'str';
     const attrMod  = ATTR_MOD(attrs[linked] ?? -2);
     const skillRank = sk?.rank ?? 0;
-    return { attrMod, skillRank, total: attrMod + skillRank, label: sk?.skill_name || 'Skill Check' };
+    return { attrMod, skillRank, total: attrMod + skillRank * 2, label: sk?.skill_name || 'Skill Check' };
   }
 
   if (rollType === 'saving_throw') {
