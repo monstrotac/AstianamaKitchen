@@ -138,6 +138,18 @@ button { font-family: inherit; }
 
 select option { background: var(--modal-bg); color: var(--text); }
 
+/* ── Responsive utilities ────────────────────────────────────────────────── */
+.responsive-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .container { padding: 12px; }
+  .responsive-2col { grid-template-columns: 1fr; }
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(220,20,60,0.25); border-radius: 3px; }

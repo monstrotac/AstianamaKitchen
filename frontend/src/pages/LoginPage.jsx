@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [mode, setMode]       = useState('login');
   const [email, setEmail]     = useState('');
   const [pass, setPass]       = useState('');
-  const [codeName, setCode]   = useState('');
+  const [username, setCode]   = useState('');
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,10 +28,10 @@ export default function LoginPage() {
   }
 
   async function handleRegister() {
-    if (!email || !pass || !codeName) { setError('All fields required'); return; }
+    if (!email || !pass || !username) { setError('All fields required'); return; }
     setLoading(true); setError('');
     try {
-      const res = await client.post('/auth/register', { email, password: pass, codeName });
+      const res = await client.post('/auth/register', { email, password: pass, username });
       localStorage.setItem('grd_token', res.data.token);
       await login(email, pass);
       navigate('/', { replace: true });
@@ -70,7 +70,7 @@ export default function LoginPage() {
               <label className="s-label">Username</label>
               <input
                 className="s-input"
-                value={codeName}
+                value={username}
                 onChange={e => setCode(e.target.value)}
                 placeholder="Choose a username…"
                 autoComplete="off"

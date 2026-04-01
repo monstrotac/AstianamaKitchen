@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { updateCharacter } from '../../api/sanctum';
-import { ATTRS, ATTR_LABELS, SAVING_THROWS, computeHealth, computeXPSpent } from '../../utils/rollUtils';
-
-const ATTR_FULL = {
-  str: 'Strength', dex: 'Dexterity', con: 'Constitution',
-  int_score: 'Intelligence', wis: 'Wisdom', cha: 'Charisma',
-};
+import { updateCharacter, getCombatAbilities } from '../../api/sanctum';
+import { ATTRS, ATTR_LABELS, ATTRIBUTE_FULL_NAMES, computeHealth, computeXPSpent } from '../../utils/rollUtils';
 import AttributeBlock from './AttributeBlock';
+import CombatPanel from './CombatPanel';
+import ForcePanel from './ForcePanel';
 import SkillList from './SkillList';
 import ImageUpload from './ImageUpload';
 import RankBadge from './RankBadge';
 import QuickRoll from './QuickRoll';
+import CombatRulesModal from './CombatRulesModal';
 
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace('/api', '');
 
@@ -24,34 +22,54 @@ const SilhouetteSVG = () => (
 
 function getAttrs(char) {
   return {
-    str: char.str || 1, dex: char.dex || 1, con: char.con || 1,
-    int_score: char.int_score || 1, wis: char.wis || 1, cha: char.cha || 1,
+    str: char.str ?? 0, dex: char.dex ?? 0, sta: char.sta ?? 0,
+    cha: char.cha ?? 0, man: char.man ?? 0, app: char.app ?? 0,
+    per: char.per ?? 0, int_score: char.int_score ?? 0, wit: char.wit ?? 0,
+  };
+}
+
+function getForce(char) {
+  return {
+    force_attunement: char.force_attunement || 0,
+    willpower_score: char.willpower_score || 0,
+    control: char.control || 0,
+    sense: char.sense || 0,
+    alter_discipline: char.alter_discipline || 0,
   };
 }
 
 export default function CharacterSheet({ char, skills, editing = false, isOwn = false, onSaved, onSkillsChanged, descriptions = [] }) {
   const [draft, setDraft]       = useState({ ...char });
   const [attrs, setAttrs]       = useState(() => getAttrs(char));
+  const [force, setForce]       = useState(() => getForce(char));
+  const [armor, setArmor]       = useState(char.armor || 'unarmored');
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
   const [activeRoll, setActiveRoll]   = useState(null);
-  const [expandedAttr, setExpandedAttr] = useState(null);
   const [hpExpanded, setHpExpanded]   = useState(false);
+  const [showRules, setShowRules]     = useState(false);
+  const [combatAbilities, setCombatAbilities] = useState([]);
   const imageUrl = draft.image_url ? `${API_BASE}${draft.image_url}` : null;
 
   useEffect(() => {
     setDraft({ ...char });
     setAttrs(getAttrs(char));
+    setForce(getForce(char));
+    setArmor(char.armor || 'unarmored');
   }, [char]);
 
   useEffect(() => { if (editing) setActiveRoll(null); }, [editing]);
+
+  useEffect(() => {
+    getCombatAbilities().then(setCombatAbilities).catch(() => {});
+  }, []);
 
   async function handleSave() {
     setSaving(true);
     setError('');
     try {
       const xpSpent = computeXPSpent(attrs, skills);
-      await updateCharacter(char.id, { spent_xp: xpSpent, ...attrs });
+      await updateCharacter(char.id, { spent_xp: xpSpent, ...attrs, ...force, armor });
       onSaved?.();
     } catch (err) {
       setError(err.response?.data?.error || 'Save failed');
@@ -60,28 +78,27 @@ export default function CharacterSheet({ char, skills, editing = false, isOwn = 
     }
   }
 
-  function openAttrRoll(attrKey) {
-    const mod = attrs[attrKey] ?? 1;
+  function openAttrRoll(attrKey, mod) {
     setActiveRoll({ label: `${ATTR_LABELS[attrKey]} Check`, modifier: mod });
   }
 
   function openSkillRoll(sk) {
-    const attrMod   = attrs[sk.attribute] ?? 1;
+    const attrMod   = attrs[sk.attribute] ?? 0;
     const skillRank = sk.rank ?? 0;
-    setActiveRoll({ label: sk.skill_name, modifier: attrMod + skillRank });
+    setActiveRoll({ label: sk.skill_name, modifier: attrMod + skillRank * 2 });
   }
 
-  function openSaveRoll(save) {
-    const mod = attrs[save.attr] ?? 1;
-    setActiveRoll({ label: `${save.label} Save`, modifier: mod });
+  function openCombatRoll(label, modifier, attributeOptions, isCombatRoll) {
+    setActiveRoll({ label, modifier, attributeOptions, isCombatRoll });
+  }
+
+  function openForceRoll(label, modifier) {
+    setActiveRoll({ label, modifier });
   }
 
   const canRoll  = isOwn && !editing;
   const health   = computeHealth(attrs, skills);
   const xpSpent  = computeXPSpent(attrs, skills);
-  const attrDescToShow = expandedAttr
-    ? descriptions.find(d => d.type === 'attribute' && d.key === expandedAttr)
-    : null;
 
   return (
     <div>
@@ -95,12 +112,15 @@ export default function CharacterSheet({ char, skills, editing = false, isOwn = 
               onUploaded={url => setDraft(p => ({ ...p, image_url: url }))}
             />
           ) : (
-            imageUrl ? <img src={imageUrl} alt={char.code_name} /> : <SilhouetteSVG />
+            imageUrl ? <img src={imageUrl} alt={char.username} /> : <SilhouetteSVG />
           )}
         </div>
 
         <div className="s-sheet-meta">
-          <div className="s-sheet-name">{char.code_name}</div>
+          <div className="s-sheet-name">{char.character_name || char.username}</div>
+          <div style={{ fontSize: '0.7rem', opacity: 0.55, fontFamily: "'Share Tech Mono',monospace", letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+            by {char.username}
+          </div>
 
           {!editing && (
             <>
@@ -112,9 +132,9 @@ export default function CharacterSheet({ char, skills, editing = false, isOwn = 
                   </span>
                 )}
               </div>
-              {char.master_code_name && (
+              {char.master_username && (
                 <div className="s-master-line">
-                  Master: <Link to={`/characters/${char.master_user_id}`}>{char.master_code_name}</Link>
+                  Master: <Link to={`/characters/${char.master_user_id}`}>{char.master_username}</Link>
                 </div>
               )}
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', alignItems: 'center' }}>
@@ -122,17 +142,14 @@ export default function CharacterSheet({ char, skills, editing = false, isOwn = 
                   <span className="s-derived-label">HP</span>
                   <span className="s-derived-value">{health}</span>
                 </div>
-                <button
-                  className="s-expand-btn"
-                  onClick={() => setHpExpanded(p => !p)}
-                >
+                <button className="s-expand-btn" onClick={() => setHpExpanded(p => !p)}>
                   {hpExpanded ? '▴' : '▾'}
                 </button>
               </div>
               {hpExpanded && (
                 <div className="s-desc-panel" style={{ marginTop: '0.5rem' }}>
                   <span className="s-desc-panel-label">Hit Points</span>
-                  2 + CON ({attrs.con ?? -2}) + Resilience rank = {health}. A guideline for resilience, not a strict counter to track in roleplay.
+                  2 + STA ({attrs.sta ?? 0}) + Resilience rank = {health}. A guideline for resilience, not a strict counter to track in roleplay.
                 </div>
               )}
             </>
@@ -141,131 +158,79 @@ export default function CharacterSheet({ char, skills, editing = false, isOwn = 
       </div>
 
       {/* Sheet body */}
-      {editing ? (
-        <div className="s-edit-panel">
-          <div className={`s-sheet-body editing`}>
-            <div>
-              <div className="s-section-title">Attributes</div>
-              <AttributeBlock
-                attrs={attrs}
-                editing={editing}
-                onChange={setAttrs}
-                descriptions={descriptions}
-              />
-            </div>
+      {/* Sheet body — single column stacked layout */}
+      <div className="s-sheet-body">
+        <div className="s-sheet-card">
+          <div className="s-section-title">Attributes</div>
+          <AttributeBlock
+            attrs={attrs}
+            editing={editing}
+            onChange={editing ? setAttrs : undefined}
+            onRoll={canRoll ? openAttrRoll : undefined}
+            descriptions={descriptions}
+          />
+        </div>
 
-            <div>
-              <div className="s-section-title">Skills</div>
-              <SkillList
-                charId={char.id}
-                skills={skills}
-                editing={editing}
-                onChanged={onSkillsChanged}
-                attrs={attrs}
-                descriptions={descriptions}
-              />
-            </div>
+        <div className="s-sheet-card">
+          <div className="s-section-title-row">
+            <div className="s-section-title">Combat</div>
+            <button className="s-rules-help-btn" onClick={() => setShowRules(true)} title="Combat Rules">?</button>
           </div>
+          <CombatPanel
+            attrs={attrs}
+            skills={skills}
+            combatAbilities={combatAbilities}
+            armor={armor}
+            editing={editing}
+            onArmorChange={editing ? setArmor : undefined}
+            onRoll={canRoll ? openCombatRoll : undefined}
+          />
+        </div>
 
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div className="s-sheet-card">
+          <div className="s-section-title">The Force</div>
+          <ForcePanel
+            force={force}
+            editing={editing}
+            onChange={editing ? setForce : undefined}
+            onRoll={canRoll ? openForceRoll : undefined}
+          />
+        </div>
+
+        <div className="s-sheet-card">
+          <div className="s-section-title">Skills</div>
+          <SkillList
+            charId={char.id}
+            skills={skills}
+            editing={editing}
+            onChanged={onSkillsChanged}
+            onRoll={canRoll ? openSkillRoll : null}
+            attrs={attrs}
+            descriptions={descriptions}
+          />
+        </div>
+
+        {editing && (
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <button className="s-btn" onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving…' : 'Save changes'}
+              {saving ? 'Saving\u2026' : 'Save changes'}
             </button>
             {error && <span style={{ color: '#e74c3c', fontSize: '0.75rem' }}>{error}</span>}
           </div>
-        </div>
-      ) : (
-        <div className="s-sheet-body">
-          {/* Left column */}
-          <div className="s-sheet-left">
-            <div className="s-section-title">Attributes</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              {ATTRS.map(a => {
-                const val  = attrs[a] ?? -2;
-                const desc = descriptions.find(d => d.type === 'attribute' && d.key === a);
-                return (
-                  <div
-                    key={a}
-                    className="s-attr-cell-dnd"
-                    onClick={canRoll ? () => openAttrRoll(a) : undefined}
-                    title={canRoll ? `Roll ${ATTR_LABELS[a]} check` : undefined}
-                    style={!canRoll ? { cursor: desc ? 'pointer' : 'default' } : undefined}
-                  >
-                    <div className="label">{ATTR_LABELS[a]}</div>
-                    <div className="mod">{val >= 0 ? `+${val}` : val}</div>
-                    <div className="score">{val}</div>
-                    {canRoll && <div className="roll-hint">◆ roll</div>}
-                    {desc && (
-                      <button
-                        className="s-expand-btn"
-                        onClick={e => { e.stopPropagation(); setExpandedAttr(expandedAttr === a ? null : a); }}
-                      >
-                        {expandedAttr === a ? '▴' : '▾'}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {attrDescToShow && (
-              <div className="s-desc-panel" style={{ marginBottom: '1.25rem' }}>
-                <span className="s-desc-panel-label">{ATTR_FULL[expandedAttr]}</span>
-                {attrDescToShow.description}
-              </div>
-            )}
-
-            {/* Saving Throws */}
-            <div className="s-saves-block">
-              <div className="s-section-title" style={{ fontSize: '0.55rem', marginBottom: '0.5rem' }}>Saving Throws</div>
-              {SAVING_THROWS.map(save => {
-                const mod  = attrs[save.attr] ?? -2;
-                const desc = descriptions.find(d => d.type === 'save' && d.key === save.key);
-                return (
-                  <div
-                    key={save.key}
-                    className={`s-save-row${canRoll ? ' clickable' : ''}`}
-                    onClick={canRoll ? () => openSaveRoll(save) : undefined}
-                    title={desc?.description}
-                  >
-                    <span className="s-save-mod">{mod >= 0 ? `+${mod}` : mod}</span>
-                    <div className="s-save-info">
-                      <span className="s-save-label">{save.label}</span>
-                      <span className="s-skill-attr-tag" data-attr={save.attr}>
-                        {save.attr.replace('_score', '').toUpperCase()}
-                      </span>
-                    </div>
-                    {canRoll && <span className="s-save-hint">◆ save</span>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Right column */}
-          <div>
-            <div className="s-section-title">Skills</div>
-            <SkillList
-              charId={char.id}
-              skills={skills}
-              editing={false}
-              onChanged={onSkillsChanged}
-              onRoll={canRoll ? openSkillRoll : null}
-              attrs={attrs}
-              descriptions={descriptions}
-            />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {activeRoll && (
-        <div className="s-quick-roll-bar">
-          <QuickRoll
-            label={activeRoll.label}
-            modifier={activeRoll.modifier}
-            onClose={() => setActiveRoll(null)}
-          />
-        </div>
+        <QuickRoll
+          label={activeRoll.label}
+          modifier={activeRoll.modifier}
+          attributeOptions={activeRoll.attributeOptions}
+          isCombatRoll={activeRoll.isCombatRoll}
+          onClose={() => setActiveRoll(null)}
+        />
       )}
+
+      {showRules && <CombatRulesModal onClose={() => setShowRules(false)} />}
     </div>
   );
 }

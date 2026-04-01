@@ -14,7 +14,6 @@ const SilhouetteSVG = () => (
 );
 
 const STAT_FIELDS = [
-  { key: 'code_name',           label: 'Username' },
   { key: 'character_name',      label: 'Character Name' },
   { key: 'full_name',           label: 'Full Name' },
   { key: 'species',             label: 'Species' },
@@ -44,10 +43,7 @@ const NARRATIVE_FIELDS = [
   { key: 'gear',             label: 'Gear' },
 ];
 
-// Editable stat fields (code_name is on the users table, read-only here)
-const EDITABLE_STAT_KEYS = STAT_FIELDS
-  .filter(f => f.key !== 'code_name')
-  .map(f => f.key);
+const EDITABLE_STAT_KEYS = STAT_FIELDS.map(f => f.key);
 
 function NarrativeSection({ label, value }) {
   if (!value) return null;
@@ -153,7 +149,7 @@ export default function CharacterProfile({ char, isOwn, canManage = false, onSav
                 {masters
                   .filter(m => m.user_id !== char.user_id)
                   .map(m => (
-                    <option key={m.user_id} value={m.user_id}>{m.code_name} ({m.spire_rank})</option>
+                    <option key={m.user_id} value={m.user_id}>{m.username} ({m.spire_rank})</option>
                   ))
                 }
               </select>
@@ -217,7 +213,7 @@ export default function CharacterProfile({ char, isOwn, canManage = false, onSav
         <div className="s-profile-portrait-wrap">
           <div className="s-profile-portrait">
             {imageUrl
-              ? <img src={imageUrl} alt={char.code_name} />
+              ? <img src={imageUrl} alt={char.username} />
               : <SilhouetteSVG />
             }
           </div>
@@ -242,21 +238,26 @@ export default function CharacterProfile({ char, isOwn, canManage = false, onSav
         </div>
 
         <div className="s-profile-header-info">
-          <div className="s-profile-codename">{char.character_name || char.code_name}</div>
+          <div className="s-profile-codename">{char.character_name || char.username}</div>
           <div className="s-profile-charname" style={{ fontSize: '0.7rem', opacity: 0.55, fontFamily: "'Share Tech Mono',monospace", letterSpacing: '0.08em' }}>
-            by {char.code_name}
+            by {char.username}
           </div>
           {char.full_name && (
             <div className="s-profile-fullname">{char.full_name}</div>
           )}
-          <div className="s-profile-rank">
+          <div className="s-profile-rank" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <RankBadge rank={char.spire_rank} />
+            {char.faction && (
+              <span className={`s-faction-badge s-faction-${char.faction}`}>
+                {{ scythes: 'The Scythes', veil: 'The Veil', solstice: 'The Solstice', patron: 'The Patron' }[char.faction] || char.faction}
+              </span>
+            )}
           </div>
           {char.quote && (
             <blockquote className="s-profile-quote">"{char.quote}"</blockquote>
           )}
-          {char.master_code_name && (
-            <div className="s-profile-master">Master: {char.master_code_name}</div>
+          {char.master_username && (
+            <div className="s-profile-master">Master: {char.master_username}</div>
           )}
           {isOwn && (
             <button className="s-btn small" style={{ marginTop: '1rem' }} onClick={startEdit}>
@@ -272,7 +273,7 @@ export default function CharacterProfile({ char, isOwn, canManage = false, onSav
         <div className="s-profile-stats-grid">
           {STAT_FIELDS.map(({ key, label }) => {
             const value = char[key];
-            if (!value && key !== 'code_name') return null;
+            if (!value) return null;
             return (
               <div key={key} className="s-profile-stat-row">
                 <span className="s-profile-stat-label">{label}</span>

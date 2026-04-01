@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ModeSwitch from '../ui/ModeSwitch';
 
 export default function SanctumHeader() {
   const { user, isAuthenticated, isSolstice, isAdmin, logout } = useAuth();
+  const [navOpen, setNavOpen] = useState(false);
 
   return (
     <header className="s-header">
@@ -18,7 +20,7 @@ export default function SanctumHeader() {
           </a>
           {isAuthenticated ? (
             <>
-              <span className="s-user-display">{user?.codeName || user?.code_name}</span>
+              <span className="s-user-display">{user?.username}</span>
               <button className="s-login-btn" onClick={logout}>Disconnect</button>
             </>
           ) : (
@@ -27,19 +29,27 @@ export default function SanctumHeader() {
           <ModeSwitch mode="sanctum" />
         </div>
       </div>
-      <nav className="s-tabs s-container">
-        <NavLink to="/"           end className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`}>Home</NavLink>
-        <NavLink to="/characters"     className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`}>Characters</NavLink>
-        <NavLink to="/trials"         className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`}>Trials</NavLink>
-        <NavLink to="/stories"        className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`}>Chronicles</NavLink>
-        <NavLink to="/reports"        className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`}>Reports</NavLink>
-        {isAuthenticated && (
-          <NavLink to="/profile"      className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`}>Profile</NavLink>
-        )}
-        {(isSolstice || isAdmin) && (
-          <NavLink to="/admin" className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`}>Admin</NavLink>
-        )}
-      </nav>
+      <div className="s-nav-bar s-container">
+        <button className="s-hamburger" onClick={() => setNavOpen(o => !o)}>
+          {navOpen ? '✕' : '☰'}
+        </button>
+        <nav className={`s-tabs${navOpen ? ' open' : ''}`}>
+          <NavLink to="/"           end className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Home</NavLink>
+          <NavLink to="/characters"     className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Characters</NavLink>
+          <NavLink to="/trials"         className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Trials</NavLink>
+          <NavLink to="/stories"        className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Chronicles</NavLink>
+          <NavLink to="/reports"        className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Reports</NavLink>
+          {isAuthenticated && (
+            <NavLink to="/sessions"     className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Sessions</NavLink>
+          )}
+          {isAuthenticated && (
+            <NavLink to="/profile"      className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Profile</NavLink>
+          )}
+          {(isSolstice || isAdmin) && (
+            <NavLink to="/admin" className={({ isActive }) => `s-tab${isActive ? ' active' : ''}`} onClick={() => setNavOpen(false)}>Admin</NavLink>
+          )}
+        </nav>
+      </div>
     </header>
   );
 }

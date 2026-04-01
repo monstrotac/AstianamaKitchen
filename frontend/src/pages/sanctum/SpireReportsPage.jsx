@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getReports, createReport, deleteReport } from '../../api/sanctum';
 import { useTitle } from '../../hooks/useTitle';
+import GuestBanner from '../../components/ui/GuestBanner';
 
 // ── Classification metadata ───────────────────────────────────────────────────
 const CLASSIFICATIONS = [
@@ -275,6 +276,7 @@ export default function SpireReportsPage() {
 
   return (
     <div className="s-container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
+      <GuestBanner />
 
       {/* Page header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>

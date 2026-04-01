@@ -2,37 +2,27 @@
  * RollCalculator — shared roll UI used in Contracts (RollForm) and Trials.
  *
  * Props:
- *   attrs       { str, dex, con, int_score, wis, cha }
+ *   attrs       { str, dex, sta, cha, man, app, per, int_score, wit }
  *   skills      array of { skill_name, attribute, rank }
- *   onChange    called with { rollType, label, attrMod, skillRank, totalMod, nat, total, dc, outcome }
- *               whenever any field changes
+ *   onChange    called with { rollType, label, attrMod, skillRank, totalMod, die1, die2, total, dc, outcome, margin, damageTier }
  *   compact     bool — renders without outer panel chrome (for embedding)
  */
 import { useState, useRef, useCallback } from 'react';
 import {
   ATTRS, ATTR_LABELS, SKILL_LIST, ATTACK_SKILLS,
-  SAVING_THROWS, ROLL_TYPES, getRollBonus,
+  SAVING_THROWS, ROLL_TYPES, DC_OPTIONS, getRollBonus, computeDamageTier,
 } from '../../utils/rollUtils';
-
-const DC_OPTS = [
-  { v: 10, l: 'Easy — DC 10' },
-  { v: 15, l: 'Standard — DC 15' },
-  { v: 20, l: 'Hard — DC 20' },
-  { v: 25, l: 'Very Hard — DC 25' },
-  { v: 30, l: 'Near Impossible — DC 30' },
-  { v: 'custom', l: 'Custom DC…' },
-];
 
 function outcomeClass(outcome) {
   if (!outcome) return '';
-  if (outcome === 'nat20') return 'rc-outcome nat20';
-  if (outcome === 'nat1')  return 'rc-outcome nat1';
+  if (outcome === 'crit_success') return 'rc-outcome crit-success';
+  if (outcome === 'crit_failure')  return 'rc-outcome crit-failure';
   if (outcome === 'success') return 'rc-outcome success';
   return 'rc-outcome failure';
 }
 
 function outcomeText(outcome) {
-  const map = { nat20: 'CRITICAL SUCCESS', nat1: 'CRITICAL FAILURE', success: 'SUCCESS', failure: 'FAILURE' };
+  const map = { crit_success: 'CRITICAL SUCCESS', crit_failure: 'CRITICAL FAILURE', success: 'SUCCESS', failure: 'FAILURE' };
   return map[outcome] || '';
 }
 
@@ -41,22 +31,14 @@ export default function RollCalculator({ attrs = {}, skills = [], onChange, comp
   const [attrKey,  setAttrKey]  = useState('str');
   const [skillKey, setSkillKey] = useState(ATTACK_SKILLS[0].skill_name);
   const [saveKey,  setSaveKey]  = useState(SAVING_THROWS[0].key);
-  const [dcSel,    setDcSel]    = useState(15);
-  const [customDC, setCustomDC] = useState(15);
-  const [nat,      setNat]      = useState('');
+  const [dcSel,    setDcSel]    = useState(12);
+  const [customDC, setCustomDC] = useState(12);
+  const [die1,     setDie1]     = useState('');
+  const [die2,     setDie2]     = useState('');
   const [rolling,  setRolling]  = useState(false);
   const ivRef = useRef(null);
 
-  const dc = dcSel === 'custom' ? (parseInt(customDC) || 15) : Number(dcSel);
-
-  // For attack rolls derive attribute from skill definition, not from attrKey
-  function getEffectiveAttrs() {
-    if (rollType === 'attack') {
-      const def = ATTACK_SKILLS.find(s => s.skill_name === skillKey);
-      return { ...attrs, _attackAttr: def?.attribute || 'str' };
-    }
-    return attrs;
-  }
+  const dc = dcSel === -1 ? (parseInt(customDC) || 12) : Number(dcSel);
 
   const { attrMod, skillRank, total: totalMod, label: rollLabel } = getRollBonus({
     rollType,
@@ -66,16 +48,33 @@ export default function RollCalculator({ attrs = {}, skills = [], onChange, comp
     saveKey, attrs, skills, skillKey,
   });
 
-  const natNum  = parseInt(nat) || 0;
-  const total   = natNum ? natNum + totalMod : null;
-  const outcome = natNum
-    ? natNum === 20 ? 'nat20' : natNum === 1 ? 'nat1' : total >= dc ? 'success' : 'failure'
-    : null;
+  const d1Num   = parseInt(die1) || 0;
+  const d2Num   = parseInt(die2) || 0;
+  const total   = (d1Num && d2Num) ? d1Num + d2Num + totalMod : null;
+
+  let outcome = null;
+  let margin = null;
+  let damageTier = null;
+  if (d1Num && d2Num) {
+    if (d1Num === 10 && d2Num === 10) {
+      outcome = 'crit_success';
+      margin = total - dc;
+      damageTier = { label: 'Devastating', damage: 4 };
+    } else if (d1Num === 1 && d2Num === 1) {
+      outcome = 'crit_failure';
+    } else if (total >= dc) {
+      outcome = 'success';
+      margin = total - dc;
+      if (rollType === 'attack') damageTier = computeDamageTier(margin);
+    } else {
+      outcome = 'failure';
+    }
+  }
 
   function notify(overrides = {}) {
     onChange?.({
       rollType, label: rollLabel, attrMod, skillRank, totalMod,
-      nat: natNum, total, dc, outcome,
+      die1: d1Num, die2: d2Num, total, dc, outcome, margin, damageTier,
       ...overrides,
     });
   }
@@ -84,33 +83,38 @@ export default function RollCalculator({ attrs = {}, skills = [], onChange, comp
     if (rolling) return;
     clearInterval(ivRef.current);
     setRolling(true);
-    setNat('');
+    setDie1('');
+    setDie2('');
     let count = 0;
     ivRef.current = setInterval(() => {
-      const r = Math.floor(Math.random() * 20) + 1;
-      setNat(String(r));
+      setDie1(String(Math.floor(Math.random() * 10) + 1));
+      setDie2(String(Math.floor(Math.random() * 10) + 1));
       count++;
-      if (count >= 16) {
+      if (count >= 18) {
         clearInterval(ivRef.current);
-        const final = Math.floor(Math.random() * 20) + 1;
-        setNat(String(final));
+        const r1 = Math.floor(Math.random() * 10) + 1;
+        const r2 = Math.floor(Math.random() * 10) + 1;
+        setDie1(String(r1));
+        setDie2(String(r2));
         setRolling(false);
-        const t = final + totalMod;
-        const o = final === 20 ? 'nat20' : final === 1 ? 'nat1' : t >= dc ? 'success' : 'failure';
-        notify({ nat: final, total: t, dc, outcome: o });
+        const t = r1 + r2 + totalMod;
+        let o, m = null, dt = null;
+        if (r1 === 10 && r2 === 10) { o = 'crit_success'; m = t - dc; dt = { label: 'Devastating', damage: 4 }; }
+        else if (r1 === 1 && r2 === 1) { o = 'crit_failure'; }
+        else if (t >= dc) { o = 'success'; m = t - dc; if (rollType === 'attack') dt = computeDamageTier(m); }
+        else { o = 'failure'; }
+        notify({ die1: r1, die2: r2, total: t, dc, outcome: o, margin: m, damageTier: dt });
       }
     }, 55);
-  }, [rolling, totalMod, dc]);
+  }, [rolling, totalMod, dc, rollType]);
 
-  // When roll type changes, reset skill key to appropriate default
   function handleRollTypeChange(val) {
     setRollType(val);
-    setNat('');
+    setDie1('');
+    setDie2('');
     if (val === 'attack') setSkillKey(ATTACK_SKILLS[0].skill_name);
     else if (val === 'skill') setSkillKey(SKILL_LIST[0].skill_name);
   }
-
-  const skillsForType = rollType === 'attack' ? ATTACK_SKILLS : SKILL_LIST;
 
   return (
     <div className={compact ? 'rc-compact' : 'rc-panel'}>
@@ -123,11 +127,10 @@ export default function RollCalculator({ attrs = {}, skills = [], onChange, comp
           </select>
         </div>
 
-        {/* Attack → weapon skill (attribute auto-derived) */}
         {rollType === 'attack' && (
           <div className="rc-field">
             <label className="rc-label">Weapon</label>
-            <select className="rc-select" value={skillKey} onChange={e => { setSkillKey(e.target.value); setNat(''); }}>
+            <select className="rc-select" value={skillKey} onChange={e => { setSkillKey(e.target.value); setDie1(''); setDie2(''); }}>
               {ATTACK_SKILLS.map(s => (
                 <option key={s.skill_name} value={s.skill_name}>
                   {s.skill_name} ({ATTR_LABELS[s.attribute]})
@@ -137,45 +140,41 @@ export default function RollCalculator({ attrs = {}, skills = [], onChange, comp
           </div>
         )}
 
-        {/* Skill check → all skills */}
         {rollType === 'skill' && (
           <div className="rc-field">
             <label className="rc-label">Skill</label>
-            <select className="rc-select" value={skillKey} onChange={e => { setSkillKey(e.target.value); setNat(''); }}>
+            <select className="rc-select" value={skillKey} onChange={e => { setSkillKey(e.target.value); setDie1(''); setDie2(''); }}>
               {SKILL_LIST.map(s => <option key={s.skill_name} value={s.skill_name}>{s.skill_name}</option>)}
             </select>
           </div>
         )}
 
-        {/* Attribute check → attribute */}
         {rollType === 'attribute' && (
           <div className="rc-field">
             <label className="rc-label">Attribute</label>
-            <select className="rc-select" value={attrKey} onChange={e => { setAttrKey(e.target.value); setNat(''); }}>
+            <select className="rc-select" value={attrKey} onChange={e => { setAttrKey(e.target.value); setDie1(''); setDie2(''); }}>
               {ATTRS.map(a => <option key={a} value={a}>{ATTR_LABELS[a]}</option>)}
             </select>
           </div>
         )}
 
-        {/* Saving throw */}
         {rollType === 'saving_throw' && (
           <div className="rc-field">
             <label className="rc-label">Save</label>
-            <select className="rc-select" value={saveKey} onChange={e => { setSaveKey(e.target.value); setNat(''); }}>
+            <select className="rc-select" value={saveKey} onChange={e => { setSaveKey(e.target.value); setDie1(''); setDie2(''); }}>
               {SAVING_THROWS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
             </select>
           </div>
         )}
 
-        {/* DC */}
         <div className="rc-field rc-field-dc">
           <label className="rc-label">Difficulty</label>
-          <select className="rc-select" value={dcSel} onChange={e => setDcSel(e.target.value === 'custom' ? 'custom' : parseInt(e.target.value))}>
-            {DC_OPTS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+          <select className="rc-select" value={dcSel} onChange={e => setDcSel(Number(e.target.value))}>
+            {DC_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
 
-        {dcSel === 'custom' && (
+        {dcSel === -1 && (
           <div className="rc-field rc-field-sm">
             <label className="rc-label">DC</label>
             <input type="number" className="rc-input" value={customDC} min="1" max="60"
@@ -186,42 +185,52 @@ export default function RollCalculator({ attrs = {}, skills = [], onChange, comp
 
       {/* Row 2: Bonus breakdown + roll */}
       <div className="rc-row rc-row-roll">
-        {/* Bonus breakdown */}
         <div className="rc-bonus-breakdown">
           <span className="rc-bonus-label">{rollLabel}</span>
           <span className="rc-bonus-detail">
             {rollType !== 'saving_throw' && rollType !== 'attribute'
-              ? `${ATTR_LABELS[ATTACK_SKILLS.find(s=>s.skill_name===skillKey)?.attribute || SKILL_LIST.find(s=>s.skill_name===skillKey)?.attribute || attrKey] || ''} +${attrMod}  ·  Rank +${skillRank}`
+              ? `${ATTR_LABELS[ATTACK_SKILLS.find(s=>s.skill_name===skillKey)?.attribute || SKILL_LIST.find(s=>s.skill_name===skillKey)?.attribute || attrKey] || ''} +${attrMod}  \u00b7  Rank +${skillRank}`
               : `+${attrMod}`
             }
           </span>
           <span className="rc-bonus-total">= +{totalMod}</span>
         </div>
 
-        {/* Natural roll input + roll button */}
         <div className="rc-roll-input-row">
-          <input
-            type="number"
-            className="rc-input rc-nat-input"
-            value={nat}
-            min="1" max="20"
-            placeholder="d20"
-            onChange={e => { setNat(e.target.value); notify({ nat: parseInt(e.target.value) || 0 }); }}
-          />
+          <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+            <input
+              type="number" className="rc-input rc-nat-input"
+              value={die1} min="1" max="10" placeholder="d10"
+              onChange={e => { setDie1(e.target.value); }}
+              style={{ width: '3rem' }}
+            />
+            <span style={{ color: 'var(--dim)' }}>+</span>
+            <input
+              type="number" className="rc-input rc-nat-input"
+              value={die2} min="1" max="10" placeholder="d10"
+              onChange={e => { setDie2(e.target.value); }}
+              style={{ width: '3rem' }}
+            />
+          </div>
           <button className="rc-roll-btn" onClick={roll} disabled={rolling}>
-            {rolling ? '…' : '◆ Roll d20'}
+            {rolling ? '\u2026' : '\u25C6 Roll 2d10'}
           </button>
         </div>
       </div>
 
       {/* Row 3: Result */}
-      {nat !== '' && natNum > 0 && (
+      {d1Num > 0 && d2Num > 0 && (
         <div className="rc-result-row">
           <span className="rc-result-formula">
-            {nat} + {totalMod} = <strong>{total}</strong> vs DC {dc}
+            {d1Num} + {d2Num} + {totalMod} = <strong>{total}</strong> vs DC {dc}
           </span>
           {outcome && (
             <span className={outcomeClass(outcome)}>{outcomeText(outcome)}</span>
+          )}
+          {margin != null && margin >= 0 && damageTier && (
+            <span className="rc-damage-tier">
+              Margin +{margin} \u2014 {damageTier.label} ({damageTier.damage} dmg)
+            </span>
           )}
         </div>
       )}

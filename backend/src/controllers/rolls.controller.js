@@ -3,7 +3,7 @@ const pool = require('../config/db');
 async function getRolls(req, res) {
   const { id } = req.params;
   const { rows } = await pool.query(
-    `SELECT cr.*, u.code_name as rolled_by_name
+    `SELECT cr.*, u.username as rolled_by_name
      FROM contract_rolls cr
      JOIN users u ON u.id = cr.rolled_by
      WHERE cr.contract_id = $1
@@ -15,15 +15,15 @@ async function getRolls(req, res) {
 
 async function addRoll(req, res) {
   const { id } = req.params;
-  const { situation, skill_name, skill_bonus, dc, natural, modifier, total, outcome } = req.body;
-  if (!situation || !skill_name || dc == null || natural == null)
-    return res.status(400).json({ error: 'situation, skill_name, dc, natural required' });
+  const { situation, skill_name, skill_bonus, dc, die1, die2, modifier, total, outcome, margin, damage_tier } = req.body;
+  if (!situation || !skill_name || dc == null || die1 == null || die2 == null)
+    return res.status(400).json({ error: 'situation, skill_name, dc, die1, die2 required' });
 
   const { rows: [r] } = await pool.query(
     `INSERT INTO contract_rolls
-       (contract_id, rolled_by, situation, skill_name, skill_bonus, dc, natural_roll, modifier, total, outcome)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-    [id, req.user.sub, situation, skill_name, skill_bonus, dc, natural, modifier, total, outcome]
+       (contract_id, rolled_by, situation, skill_name, skill_bonus, dc, die1, die2, modifier, total, outcome, margin, damage_tier)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+    [id, req.user.sub, situation, skill_name, skill_bonus, dc, die1, die2, modifier, total, outcome, margin ?? null, damage_tier ?? null]
   );
   res.status(201).json(r);
 }

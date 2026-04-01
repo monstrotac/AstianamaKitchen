@@ -6,7 +6,8 @@ export default function RollResult({ result }) {
       </div>
     );
   }
-  const { oc, oc2, pc, flavor, breakdown } = result;
+  const { oc, oc2, flavor, breakdown } = result;
+  const pc = oc2 === 'ok' || oc2 === 'crit_success' ? 'ok' : 'no';
   return (
     <div className={`result ${pc}`}>
       <div className={`r-outcome ${oc2}`}>{oc}</div>

@@ -34,7 +34,7 @@ function CharacterFactionRow({ char, onUpdated }) {
       <div style={{ flex: 1 }}>
         <div className="s-admin-name">
           <Link to={`/characters/${char.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-            {char.code_name}
+            {char.username}
           </Link>
         </div>
         <div className="s-admin-meta">

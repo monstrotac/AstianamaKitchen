@@ -6,15 +6,10 @@ import BonusBox from '../components/roller/BonusBox';
 import RollResult from '../components/roller/RollResult';
 import { useRoller } from '../hooks/useRoller';
 
-const DC_OPTIONS = [
-  { value: 8,  label: 'Routine — DC 8' },
-  { value: 12, label: 'Somewhat Difficult — DC 12' },
-  { value: 15, label: 'Difficult — DC 15' },
-  { value: 18, label: 'Very Difficult — DC 18' },
-  { value: 22, label: 'Extremely Difficult — DC 22' },
-  { value: 25, label: 'Near Impossible — DC 25' },
-  { value: 'custom', label: 'Custom DC' },
-];
+import { DC_OPTIONS as GAME_DC_OPTIONS } from '../utils/rollUtils';
+
+// Map the game DC options for this page (filter out Custom for the select)
+const DC_OPTIONS = GAME_DC_OPTIONS;
 
 export default function HarvestPage() {
   const { user } = useAuth();
@@ -23,7 +18,7 @@ export default function HarvestPage() {
   const [selectedSkill, setSkill]   = useState(null);
   const [dcSel, setDcSel]           = useState(12);
   const [customDC, setCustomDC]     = useState(12);
-  const { rolling, dieDisplay, spinning, result, roll } = useRoller();
+  const { rolling, die1Display, die2Display, spinning, result, roll } = useRoller();
 
   useEffect(() => {
     if (!user) return;
@@ -34,16 +29,17 @@ export default function HarvestPage() {
     }).catch(() => {});
   }, [user]);
 
-  const activeDC   = dcSel === 'custom' ? (parseInt(customDC) || 12) : dcSel;
+  const activeDC   = dcSel === -1 ? (parseInt(customDC) || 12) : dcSel;
   const skillBonus = selectedSkill?.bonus ?? 0;
+  const totalModifier = skillBonus + baseModifier;
 
   function handleRoll() {
-    roll(skillBonus, baseModifier, activeDC);
+    roll(totalModifier, activeDC);
   }
 
   return (
     <div className="panel">
-      <div className="panel-title">Mission Assessment — D20 System</div>
+      <div className="panel-title">Mission Assessment — 2d10 System</div>
       <div className="roller-grid">
         {/* Controls */}
         <div>
@@ -63,17 +59,14 @@ export default function HarvestPage() {
 
           <div className="field-group">
             <label className="field-label">Mission Difficulty</label>
-            <select className="sel" value={dcSel} onChange={e => {
-              const v = e.target.value === 'custom' ? 'custom' : parseInt(e.target.value);
-              setDcSel(v);
-            }}>
+            <select className="sel" value={dcSel} onChange={e => setDcSel(Number(e.target.value))}>
               {DC_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
             <div className="dc-row">
               <span className="dc-lbl">Target DC:</span>
-              {dcSel === 'custom'
+              {dcSel === -1
                 ? <input type="number" className="dc-input" min="1" max="40" value={customDC}
                     onChange={e => setCustomDC(e.target.value)} style={{display:'inline-block'}} />
                 : <span className="dc-num">{dcSel}</span>
@@ -89,12 +82,12 @@ export default function HarvestPage() {
 
         {/* Die */}
         <div className="die-col">
-          <D20Die display={dieDisplay} spinning={spinning} onRoll={handleRoll} />
+          <D20Die display1={die1Display} display2={die2Display} spinning={spinning} onRoll={handleRoll} />
           <button className="roll-btn" onClick={handleRoll} disabled={rolling}>
-            ◆ Cast the Die ◆
+            {'\u25C6'} Cast the Dice {'\u25C6'}
           </button>
           <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:'0.68rem',color:'var(--dim)',textAlign:'center',lineHeight:1.8}}>
-            Click die or button to roll<br/>
+            Click dice or button to roll 2d10<br/>
             <span style={{color:'rgba(220,20,60,0.45)'}}>The blade decides all things</span>
           </div>
         </div>

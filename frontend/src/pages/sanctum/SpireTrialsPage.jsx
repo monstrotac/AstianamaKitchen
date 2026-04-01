@@ -4,6 +4,7 @@ import { getTrials, createTrial } from '../../api/sanctum';
 import TrialCard from '../../components/sanctum/TrialCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTitle } from '../../hooks/useTitle';
+import GuestBanner from '../../components/ui/GuestBanner';
 
 const STATUSES = ['', 'pending', 'active', 'complete', 'failed'];
 const PAGE_SIZE = 10;
@@ -53,6 +54,7 @@ export default function SpireTrialsPage() {
 
   return (
     <div>
+      <GuestBanner />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="s-section-title" style={{ margin: '0 0 1rem' }}>Trials</div>
         {isMember && (

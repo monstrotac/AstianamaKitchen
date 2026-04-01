@@ -48,7 +48,7 @@ export default function CharacterPicker({ value, onChange, label = 'Creator Char
             <img src={selected.image_url} alt="" className="cp-avatar" />
           )}
           <span className="cp-name">{selected.character_name}</span>
-          <span className="cp-codename">({selected.code_name})</span>
+          <span className="cp-codename">({selected.username})</span>
           <button className="cp-clear" onClick={clear} title="Remove">✕</button>
         </div>
       ) : (
@@ -68,7 +68,7 @@ export default function CharacterPicker({ value, onChange, label = 'Creator Char
                 <li key={char.id} className="cp-option" onMouseDown={() => pick(char)}>
                   {char.image_url && <img src={char.image_url} alt="" className="cp-avatar-sm" />}
                   <span className="cp-opt-name">{char.character_name}</span>
-                  <span className="cp-opt-code">({char.code_name})</span>
+                  <span className="cp-opt-code">({char.username})</span>
                 </li>
               ))}
             </ul>

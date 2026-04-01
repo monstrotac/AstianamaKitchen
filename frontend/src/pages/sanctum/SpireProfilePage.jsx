@@ -5,6 +5,7 @@ import { useSanctum } from '../../contexts/SanctumContext';
 import { createCharacter } from '../../api/sanctum';
 import { useTitle } from '../../hooks/useTitle';
 import RankBadge from '../../components/sanctum/RankBadge';
+import GuestBanner from '../../components/ui/GuestBanner';
 
 const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace('/api', '');
 
@@ -17,7 +18,7 @@ const SilhouetteSVG = () => (
 
 export default function SpireProfilePage() {
   useTitle('Profile');
-  const { user }    = useAuth();
+  const { user, isMember } = useAuth();
   const { myChars, activeCharId, loadMyChars, switchActiveChar } = useSanctum();
 
   const [creating, setCreating]     = useState(false);
@@ -38,11 +39,14 @@ export default function SpireProfilePage() {
 
   return (
     <div>
+      <GuestBanner />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div className="s-section-title" style={{ margin: 0 }}>My Characters</div>
-        <button className="s-btn small" onClick={handleCreate} disabled={creating}>
-          {creating ? 'Creating…' : '+ New Character'}
-        </button>
+        {isMember && (
+          <button className="s-btn small" onClick={handleCreate} disabled={creating}>
+            {creating ? 'Creating\u2026' : '+ New Character'}
+          </button>
+        )}
       </div>
 
       {createError && <div className="s-error" style={{ marginBottom: '1rem' }}>{createError}</div>}
@@ -50,11 +54,15 @@ export default function SpireProfilePage() {
       {myChars.length === 0 ? (
         <div className="s-panel" style={{ textAlign: 'center' }}>
           <p style={{ color: 'var(--dim)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-            You do not yet have a Sanctum character. Create one to join the Order.
+            {isMember
+              ? 'You do not yet have a Sanctum character. Create one to join the Order.'
+              : 'Your account is pending approval. Once approved, you can create a character.'}
           </p>
-          <button className="s-btn" onClick={handleCreate} disabled={creating}>
-            {creating ? 'Creating…' : 'Create Character'}
-          </button>
+          {isMember && (
+            <button className="s-btn" onClick={handleCreate} disabled={creating}>
+              {creating ? 'Creating\u2026' : 'Create Character'}
+            </button>
+          )}
         </div>
       ) : (
         <div className="s-char-roster">
@@ -65,14 +73,14 @@ export default function SpireProfilePage() {
               <div key={char.id} className={`s-roster-card${isActive ? ' active' : ''}`}>
                 <div className="s-roster-portrait">
                   {imageUrl
-                    ? <img src={imageUrl} alt={char.code_name} />
+                    ? <img src={imageUrl} alt={char.username} />
                     : <SilhouetteSVG />
                   }
                 </div>
                 <div className="s-roster-info">
-                  <div className="s-roster-name">{char.character_name || char.code_name}</div>
+                  <div className="s-roster-name">{char.character_name || char.username}</div>
                   <div className="s-roster-charname" style={{ fontSize: '0.65rem', opacity: 0.5, fontFamily: "'Share Tech Mono',monospace" }}>
-                    by {char.code_name}
+                    by {char.username}
                   </div>
                   <div className="s-roster-rank">
                     <RankBadge rank={char.spire_rank} />

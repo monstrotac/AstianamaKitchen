@@ -33,7 +33,7 @@ export default function SpireCharactersPage() {
       const matchRank   = !rankFilter || c.spire_rank === rankFilter;
       const matchSearch = !search
         || c.character_name?.toLowerCase().includes(search.toLowerCase())
-        || c.code_name?.toLowerCase().includes(search.toLowerCase())
+        || c.username?.toLowerCase().includes(search.toLowerCase())
         || c.species?.toLowerCase().includes(search.toLowerCase())
         || c.status_name?.toLowerCase().includes(search.toLowerCase());
       return matchRank && matchSearch;

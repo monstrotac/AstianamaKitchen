@@ -5,7 +5,7 @@ const isPrivileged = (role, faction) => role === 'admin' || faction === 'solstic
 
 async function listUsers(req, res) {
   const { rows } = await pool.query(
-    `SELECT u.id, u.email, u.code_name, u.role, u.is_active, u.created_at,
+    `SELECT u.id, u.email, u.username, u.role, u.is_active, u.created_at,
             u.operative_name, u.active_character_id,
             sc.faction AS char_faction, sc.spire_rank, sc.character_name AS char_name
      FROM users u
@@ -13,7 +13,7 @@ async function listUsers(req, res) {
      ORDER BY u.created_at ASC`
   );
   res.json(rows.map(u => ({
-    id: u.id, email: u.email, codeName: u.code_name,
+    id: u.id, email: u.email, username: u.username,
     operativeName: u.operative_name || null,
     activeCharId: u.active_character_id || null,
     faction: u.char_faction || null,
@@ -24,18 +24,18 @@ async function listUsers(req, res) {
 }
 
 async function createUser(req, res) {
-  const { email, password, codeName } = req.body;
-  if (!email || !password || !codeName)
-    return res.status(400).json({ error: 'email, password, codeName required' });
+  const { email, password, username } = req.body;
+  if (!email || !password || !username)
+    return res.status(400).json({ error: 'email, password, username required' });
 
   const hash = await bcrypt.hash(password, 12);
   try {
     const { rows: [user] } = await pool.query(
-      `INSERT INTO users (email, password_hash, code_name, role)
-       VALUES ($1, $2, $3, 'user') RETURNING id, email, code_name, role, created_at`,
-      [email.toLowerCase().trim(), hash, codeName]
+      `INSERT INTO users (email, password_hash, username, role)
+       VALUES ($1, $2, $3, 'user') RETURNING id, email, username, role, created_at`,
+      [email.toLowerCase().trim(), hash, username]
     );
-    res.status(201).json({ id: user.id, email: user.email, codeName: user.code_name, role: user.role });
+    res.status(201).json({ id: user.id, email: user.email, username: user.username, role: user.role });
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Email already registered' });
     throw err;
@@ -48,7 +48,7 @@ async function getUser(req, res) {
     return res.status(403).json({ error: 'Insufficient clearance' });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.email, u.code_name, u.role, u.is_active, u.created_at,
+    `SELECT u.id, u.email, u.username, u.role, u.is_active, u.created_at,
             cs.id as sheet_id, cs.species, cs.alignment, cs.specialties, cs.bio, cs.base_modifier
      FROM users u
      LEFT JOIN character_sheets cs ON cs.user_id = u.id
@@ -58,7 +58,7 @@ async function getUser(req, res) {
   if (!rows[0]) return res.status(404).json({ error: 'User not found' });
   const u = rows[0];
   res.json({
-    id: u.id, email: u.email, codeName: u.code_name,
+    id: u.id, email: u.email, username: u.username,
     role: u.role, isActive: u.is_active, createdAt: u.created_at,
     sheet: { id: u.sheet_id, species: u.species, alignment: u.alignment, specialties: u.specialties, bio: u.bio, base_modifier: u.base_modifier }
   });
@@ -73,7 +73,7 @@ async function updateUser(req, res) {
   const values  = [];
   let i = 1;
 
-  if (req.body.codeName !== undefined) { updates.push(`code_name=$${i++}`); values.push(req.body.codeName); }
+  if (req.body.username !== undefined) { updates.push(`username=$${i++}`); values.push(req.body.username); }
   if (req.body.email    !== undefined) { updates.push(`email=$${i++}`);     values.push(req.body.email.toLowerCase().trim()); }
   // Only admins can change role, active status, and operative name
   if (isPrivileged(req.user.role, req.user.faction)) {
@@ -94,12 +94,12 @@ async function updateUser(req, res) {
   if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
   values.push(id);
   const { rows } = await pool.query(
-    `UPDATE users SET ${updates.join(',')} WHERE id=$${i} RETURNING id, email, code_name, role, is_active`,
+    `UPDATE users SET ${updates.join(',')} WHERE id=$${i} RETURNING id, email, username, role, is_active`,
     values
   );
   if (!rows[0]) return res.status(404).json({ error: 'User not found' });
   const u = rows[0];
-  res.json({ id: u.id, email: u.email, codeName: u.code_name, role: u.role, isActive: u.is_active });
+  res.json({ id: u.id, email: u.email, username: u.username, role: u.role, isActive: u.is_active });
 }
 
 async function getSheet(req, res) {
@@ -108,7 +108,7 @@ async function getSheet(req, res) {
     return res.status(403).json({ error: 'Insufficient clearance' });
 
   const { rows } = await pool.query(
-    `SELECT cs.*, u.code_name
+    `SELECT cs.*, u.username
      FROM character_sheets cs JOIN users u ON u.id = cs.user_id
      WHERE cs.user_id = $1`,
     [id]
@@ -182,4 +182,41 @@ async function updateSkills(req, res) {
   res.json({ ok: true });
 }
 
-module.exports = { listUsers, createUser, getUser, updateUser, getSheet, updateSheet, getSkills, updateSkills };
+async function deleteUser(req, res) {
+  const { id } = req.params;
+
+  // Prevent self-deletion
+  if (req.user.sub === id)
+    return res.status(400).json({ error: 'Cannot delete your own account' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    // Clean up related data
+    await client.query('DELETE FROM character_skill_overrides WHERE user_id=$1', [id]);
+    await client.query('DELETE FROM character_sheets WHERE user_id=$1', [id]);
+    // Spire characters and their dependents
+    const { rows: chars } = await client.query('SELECT id FROM spire_characters WHERE user_id=$1', [id]);
+    for (const c of chars) {
+      await client.query('DELETE FROM spire_skill_overrides WHERE character_id=$1', [c.id]);
+      await client.query('DELETE FROM spire_stories WHERE character_id=$1', [c.id]);
+    }
+    await client.query('DELETE FROM spire_characters WHERE user_id=$1', [id]);
+    // Trials assigned to or created by the user
+    await client.query('DELETE FROM spire_trials WHERE assigned_to=$1 OR created_by=$1', [id]);
+    // Reports created by the user
+    await client.query('DELETE FROM spire_reports WHERE created_by=$1', [id]);
+    // Finally delete the user
+    const { rowCount } = await client.query('DELETE FROM users WHERE id=$1', [id]);
+    if (!rowCount) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'User not found' }); }
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports = { listUsers, createUser, getUser, updateUser, deleteUser, getSheet, updateSheet, getSkills, updateSkills };

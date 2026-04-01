@@ -29,6 +29,7 @@ import StoryViewPage      from './pages/sanctum/StoryViewPage';
 
 // Pages — Garden
 import DashboardPage from './pages/DashboardPage';
+import SessionsPage from './pages/SessionsPage';
 
 import { SanctumProvider } from './contexts/SanctumContext';
 import { useAuth } from './contexts/AuthContext';
@@ -66,6 +67,9 @@ function AppRoutes() {
         <Route path="trials/:id/edit"       element={<ProtectedRoute><TrialEditPage /></ProtectedRoute>} />
         <Route path="characters/:charId/stories/:storyId" element={<StoryViewPage />} />
         <Route path="characters/:charId/stories/:storyId/edit" element={<ProtectedRoute><StoryEditPage /></ProtectedRoute>} />
+        <Route path="sessions" element={
+          <ProtectedRoute><SessionsPage /></ProtectedRoute>
+        } />
         <Route path="admin" element={
           <ProtectedRoute><SpireAdminPage /></ProtectedRoute>
         } />

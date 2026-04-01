@@ -1,0 +1,638 @@
+/* ── SESSION LIST ── */
+.sess-create {
+  display:flex; gap:10px; margin-bottom:20px;
+}
+.sess-create .ct-input { flex:1; }
+.sess-create .ct-add-btn { width:auto; white-space:nowrap; }
+
+.sess-list { display:flex; flex-direction:column; gap:8px; }
+
+.sess-card {
+  display:flex; align-items:center; gap:16px;
+  border:1px solid var(--border-sub); border-left:3px solid var(--dark-red);
+  padding:14px 16px; background:var(--card-bg); transition:all 0.25s;
+}
+.sess-card:hover { border-left-color:var(--crimson); background:var(--card-hover); }
+.sess-card-info { flex:1; min-width:0; }
+.sess-card-name {
+  font-family:'Cinzel',serif; font-size:0.92rem; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sess-card-meta {
+  font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:var(--dim); margin-top:4px;
+}
+.sess-card-actions { display:flex; gap:6px; flex-shrink:0; }
+
+.sess-empty {
+  text-align:center; padding:40px 20px;
+  font-family:'Share Tech Mono',monospace; font-size:0.78rem; color:var(--dim);
+  letter-spacing:0.12em;
+}
+
+/* ── CHARACTER SELECT MODAL ── */
+.sess-overlay {
+  position:fixed; inset:0; background:var(--overlay); z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  animation:fadein 0.2s ease;
+}
+.sess-char-modal {
+  background:var(--modal-bg); border:1px solid var(--border);
+  padding:28px; width:90%; max-width:440px; max-height:80vh;
+  overflow-y:auto; position:relative;
+}
+.sess-char-modal::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--crimson),transparent);
+}
+.sess-char-list { display:flex; flex-direction:column; gap:8px; margin-top:16px; }
+.sess-char-option {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px; border:1px solid var(--border-sub);
+  background:var(--card-bg); cursor:pointer; transition:all 0.2s;
+}
+.sess-char-option:hover { border-color:var(--crimson); background:var(--card-hover); }
+.sess-char-option.selected { border-color:var(--crimson); background:rgba(220,20,60,0.12); box-shadow:0 0 12px rgba(220,20,60,0.15); }
+.sess-char-avatar {
+  width:36px; height:36px; border-radius:50%; object-fit:cover;
+  border:1px solid var(--border); flex-shrink:0;
+}
+.sess-char-avatar-placeholder {
+  width:36px; height:36px; border-radius:50%;
+  border:1px solid var(--border); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',sans-serif; font-size:0.55rem; color:var(--dim);
+  background:var(--input-bg);
+}
+.sess-char-detail { min-width:0; }
+.sess-char-detail-name {
+  font-family:'Cinzel',serif; font-size:0.86rem; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sess-char-detail-sub {
+  font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim); margin-top:2px;
+}
+
+/* ── SESSION ROOM ── */
+.sess-room { display:flex; flex-direction:column; height:calc(100vh - 220px); min-height:400px; }
+
+.sess-room-header {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 0; margin-bottom:12px;
+  border-bottom:1px solid var(--border-sub);
+}
+.sess-room-title {
+  font-family:'Cinzel',serif; font-size:1rem; color:var(--text); flex:1;
+}
+.sess-room-members {
+  display:flex; gap:4px; flex-shrink:0; align-items:center;
+}
+.sess-room-member-pip {
+  width:28px; height:28px; border-radius:50%; object-fit:cover;
+  border:1px solid var(--border);
+}
+.sess-room-member-pip-placeholder {
+  width:28px; height:28px; border-radius:50%;
+  border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.5rem; color:var(--dim); background:var(--input-bg);
+}
+.sess-room-member-count {
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--dim); margin-left:4px;
+}
+
+/* ── MESSAGES ── */
+.sess-messages {
+  flex:1; overflow-y:auto; padding:8px 0;
+  display:flex; flex-direction:column; gap:6px;
+  scrollbar-width:thin; scrollbar-color:var(--border-sub) transparent;
+}
+.sess-messages::-webkit-scrollbar { width:5px; }
+.sess-messages::-webkit-scrollbar-thumb { background:var(--border-sub); border-radius:3px; }
+
+.sess-msg {
+  display:flex; gap:10px; padding:8px 12px;
+  animation:fadein 0.3s ease;
+}
+.sess-msg-avatar {
+  width:32px; height:32px; border-radius:50%; object-fit:cover;
+  border:1px solid var(--border); flex-shrink:0; margin-top:2px;
+}
+.sess-msg-avatar-placeholder {
+  width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--border); flex-shrink:0; margin-top:2px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.5rem; color:var(--dim); background:var(--input-bg);
+}
+.sess-msg-body { min-width:0; flex:1; }
+.sess-msg-header {
+  display:flex; align-items:baseline; gap:8px; margin-bottom:3px;
+}
+.sess-msg-name {
+  font-family:'Cinzel',serif; font-size:0.82rem; color:var(--crimson); font-weight:600;
+}
+.sess-msg-time {
+  font-family:'Share Tech Mono',monospace; font-size:0.58rem; color:var(--dim);
+}
+.sess-msg-text {
+  font-family:'Cinzel',serif; font-size:0.84rem; color:var(--text); line-height:1.6;
+  word-break:break-word;
+}
+
+/* Roll message */
+.sess-msg-roll {
+  border:1px solid var(--border-sub); border-left:3px solid var(--dark-red);
+  padding:10px 14px; background:var(--card-bg); margin-top:4px;
+}
+.sess-roll-label {
+  font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.18em;
+  color:var(--dim); text-transform:uppercase; margin-bottom:6px;
+}
+.sess-roll-dice {
+  font-family:'Share Tech Mono',monospace; font-size:0.88rem; color:var(--text);
+}
+.sess-roll-outcome {
+  font-family:'Orbitron',sans-serif; font-size:0.72rem; letter-spacing:0.15em;
+  margin-top:6px; text-transform:uppercase;
+}
+.sess-roll-outcome.success      { color:#5aaa66; }
+.sess-roll-outcome.failure      { color:#c05050; }
+.sess-roll-outcome.crit_success { color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); }
+.sess-roll-outcome.crit_failure { color:#ff3333; text-shadow:0 0 10px rgba(255,51,51,0.5); }
+.sess-roll-damage {
+  font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:var(--mono); margin-top:4px;
+}
+
+/* System message */
+.sess-msg-system {
+  text-align:center; padding:6px 12px;
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  color:var(--dim); letter-spacing:0.1em; font-style:italic;
+}
+
+/* ── INPUT BAR ── */
+.sess-input-bar {
+  display:flex; gap:8px; padding:12px 0 0;
+  border-top:1px solid var(--border-sub);
+}
+.sess-input-bar .ct-input { flex:1; }
+.sess-input-bar .ct-action-btn { flex-shrink:0; }
+
+/* ── ROLL PANEL ── */
+.sess-roll-panel {
+  border:1px solid var(--border-sub); background:var(--card-bg);
+  padding:16px; margin-top:8px;
+  animation:fadein 0.25s ease;
+}
+.sess-roll-panel-title {
+  font-family:'Orbitron',sans-serif; font-size:0.6rem; letter-spacing:0.2em;
+  color:var(--crimson); text-transform:uppercase; margin-bottom:12px;
+}
+.sess-roll-config {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+}
+.sess-roll-config .field-group { margin-bottom:0; }
+.sess-roll-config-full { grid-column:1 / -1; }
+.sess-roll-actions {
+  display:flex; gap:8px; margin-top:12px; justify-content:flex-end;
+}
+
+/* ── SKILL SEARCH PICKER ── */
+.sess-skill-search-wrap {
+  position:relative; margin-bottom:8px;
+}
+.sess-skill-search-clear {
+  position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  background:none; border:none; color:var(--dim); cursor:pointer;
+  font-size:0.8rem; padding:4px;
+}
+.sess-skill-search-clear:hover { color:var(--text); }
+
+.sess-skill-list {
+  max-height:200px; overflow-y:auto; border:1px solid var(--border-sub);
+  scrollbar-width:thin; scrollbar-color:var(--border-sub) transparent;
+}
+.sess-skill-list::-webkit-scrollbar { width:4px; }
+.sess-skill-list::-webkit-scrollbar-thumb { background:var(--border-sub); }
+
+.sess-skill-item { border-bottom:1px solid var(--border-sub); }
+.sess-skill-item:last-child { border-bottom:none; }
+
+.sess-skill-row {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 10px; cursor:pointer; transition:background 0.15s;
+}
+.sess-skill-row:hover { background:var(--card-hover); }
+.sess-skill-name {
+  font-family:'Cinzel',serif; font-size:0.78rem; color:var(--text); flex:1; min-width:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sess-skill-attr {
+  font-family:'Orbitron',sans-serif; font-size:0.52rem; letter-spacing:0.12em;
+  color:var(--dim); text-transform:uppercase; flex-shrink:0;
+}
+.sess-skill-rank-pip {
+  font-size:0.55rem; color:var(--crimson); flex-shrink:0; letter-spacing:1px;
+}
+.sess-skill-info {
+  width:18px; height:18px; border-radius:50%;
+  border:1px solid var(--border); background:transparent;
+  color:var(--dim); font-size:0.6rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all 0.2s;
+}
+.sess-skill-info:hover { border-color:var(--crimson); color:var(--crimson); }
+
+.sess-skill-desc {
+  font-family:'Share Tech Mono',monospace; font-size:0.68rem;
+  color:var(--dim); line-height:1.6; padding:6px 10px 8px;
+  border-left:2px solid var(--border-sub); margin:4px 0 4px 10px;
+}
+.sess-skill-empty {
+  padding:12px 10px; text-align:center;
+  font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--dim);
+}
+
+.sess-skill-selected {
+  display:flex; align-items:center; gap:10px; padding:8px 12px;
+  border:1px solid var(--crimson); background:rgba(220,20,60,0.08);
+}
+.sess-skill-selected-name {
+  font-family:'Cinzel',serif; font-size:0.86rem; color:var(--text); flex:1;
+}
+.sess-skill-selected-rank {
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--dim);
+}
+.sess-skill-clear {
+  font-family:'Orbitron',sans-serif; font-size:0.55rem; letter-spacing:0.12em;
+  padding:3px 8px; background:transparent; border:1px solid var(--border);
+  color:var(--dim); cursor:pointer; text-transform:uppercase; transition:all 0.2s;
+}
+.sess-skill-clear:hover { border-color:var(--crimson); color:var(--text); }
+
+/* Roll preview */
+.sess-roll-preview {
+  font-family:'Share Tech Mono',monospace; font-size:0.76rem;
+  color:var(--text); padding:8px 0; margin-top:8px;
+  border-top:1px solid var(--border-sub);
+}
+.sess-roll-preview strong { color:var(--crimson); }
+.sess-roll-preview-detail { color:var(--dim); font-size:0.68rem; }
+
+/* ── ROOM BODY (messages + sidebar) ── */
+.sess-room-body {
+  display:flex; gap:0; flex:1; overflow:hidden;
+}
+.sess-room-body .sess-messages { flex:1; }
+
+.sess-room-toolbar {
+  display:flex; gap:4px; flex-shrink:0;
+}
+.ct-action-btn.active {
+  border-color:var(--crimson); color:var(--crimson);
+}
+
+/* ── TARGET SELECTOR ── */
+.sess-target-list {
+  max-height:150px; overflow-y:auto; border:1px solid var(--border-sub);
+  scrollbar-width:thin; scrollbar-color:var(--border-sub) transparent;
+}
+.sess-target-option {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 10px; cursor:pointer; transition:all 0.15s;
+  border-bottom:1px solid var(--border-sub);
+}
+.sess-target-option:last-child { border-bottom:none; }
+.sess-target-option:hover { background:var(--card-hover); }
+.sess-target-option.selected {
+  border-color:var(--crimson); background:rgba(220,20,60,0.08);
+  box-shadow:inset 3px 0 0 var(--crimson);
+}
+.sess-target-avatar {
+  width:28px; height:28px; border-radius:50%; object-fit:cover;
+  border:1px solid var(--border); flex-shrink:0;
+}
+.sess-target-avatar-ph {
+  width:28px; height:28px; border-radius:50%;
+  border:1px solid var(--border); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.5rem; color:var(--dim); background:var(--input-bg);
+}
+.sess-target-name {
+  font-family:'Cinzel',serif; font-size:0.78rem; color:var(--text); flex:1;
+}
+.sess-target-hp {
+  font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim);
+}
+
+/* ── DEFENSE PROMPT (shown to the target) ── */
+.sess-defense-prompt {
+  border:2px solid var(--crimson); background:var(--card-bg);
+  padding:14px 16px; margin-bottom:8px;
+  animation:fadein 0.3s ease;
+  box-shadow:0 0 20px rgba(220,20,60,0.15);
+}
+.sess-defense-prompt-header {
+  display:flex; align-items:center; gap:12px; margin-bottom:10px;
+}
+.sess-defense-prompt-icon {
+  width:32px; height:32px; border-radius:50%;
+  border:2px solid var(--crimson); background:rgba(220,20,60,0.12);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Orbitron',sans-serif; font-size:0.9rem; color:var(--crimson);
+  flex-shrink:0; animation:blink 1.4s ease-in-out infinite;
+}
+.sess-defense-prompt-title {
+  font-family:'Orbitron',sans-serif; font-size:0.65rem; letter-spacing:0.2em;
+  color:var(--crimson); text-transform:uppercase;
+}
+.sess-defense-prompt-attacker {
+  font-family:'Cinzel',serif; font-size:0.82rem; color:var(--text);
+  display:flex; align-items:center; gap:6px; margin-top:3px;
+}
+.sess-defense-prompt-label {
+  font-family:'Orbitron',sans-serif; font-size:0.55rem; letter-spacing:0.15em;
+  color:var(--dim); text-transform:uppercase; margin-bottom:6px;
+}
+.sess-defense-prompt-actions {
+  display:flex; justify-content:flex-end; margin-top:10px;
+}
+
+/* ── DEFENSE PICKER ── */
+.sess-defense-picker {
+  display:flex; flex-direction:column; gap:2px;
+}
+.sess-defense-option {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 10px; cursor:pointer; transition:all 0.15s;
+  border:1px solid transparent; font-size:0.78rem;
+}
+.sess-defense-option:hover { background:var(--card-hover); }
+.sess-defense-option.active {
+  border-color:var(--crimson); background:rgba(220,20,60,0.06);
+}
+.sess-defense-option.disabled {
+  opacity:0.4; cursor:not-allowed;
+}
+.sess-defense-option input[type="radio"] { accent-color:var(--crimson); }
+.sess-defense-name {
+  font-family:'Cinzel',serif; color:var(--text); flex:1;
+}
+.sess-defense-dc {
+  font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:var(--crimson);
+}
+.sess-defense-note {
+  font-family:'Share Tech Mono',monospace; font-size:0.58rem; color:var(--dim); font-style:italic;
+}
+
+/* ── TARGET INFO ── */
+.sess-target-info {
+  margin-top:6px; padding:6px 0;
+  border-top:1px solid var(--border-sub);
+}
+.sess-target-info-line {
+  display:block; font-family:'Share Tech Mono',monospace;
+  font-size:0.65rem; color:var(--dim); line-height:1.7;
+}
+.sess-target-info-line.highlight { color:var(--mono); }
+
+/* ── TARGETED ROLL DISPLAY ── */
+.sess-roll-target-line {
+  display:flex; align-items:center; gap:6px; margin:4px 0 6px;
+  font-family:'Cinzel',serif; font-size:0.78rem;
+}
+.sess-roll-target-arrow { color:var(--crimson); font-size:0.9rem; }
+.sess-roll-target-avatar {
+  width:20px; height:20px; border-radius:50%; object-fit:cover;
+  border:1px solid var(--border);
+}
+.sess-roll-target-avatar-ph {
+  width:20px; height:20px; border-radius:50%;
+  border:1px solid var(--border); display:inline-flex;
+  align-items:center; justify-content:center;
+  font-size:0.45rem; color:var(--dim); background:var(--input-bg);
+}
+.sess-roll-target-name { color:var(--text); font-weight:600; }
+.sess-roll-target-defense {
+  font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim);
+}
+.sess-roll-soak-section { margin-top:4px; }
+.sess-roll-soak-line {
+  font-family:'Share Tech Mono',monospace; font-size:0.68rem;
+  color:var(--dim); margin-top:2px;
+}
+.sess-roll-soak-line strong { color:var(--mono); }
+
+/* ── COMBAT STATS SIDEBAR ── */
+.sess-combat-sidebar {
+  width:280px; flex-shrink:0; overflow-y:auto;
+  border-left:1px solid var(--border-sub);
+  padding:12px; background:var(--card-bg);
+  scrollbar-width:thin; scrollbar-color:var(--border-sub) transparent;
+}
+.sess-combat-sidebar::-webkit-scrollbar { width:4px; }
+.sess-combat-sidebar::-webkit-scrollbar-thumb { background:var(--border-sub); }
+.sess-combat-sidebar-title {
+  font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.2em;
+  color:var(--crimson); text-transform:uppercase; margin-bottom:12px;
+}
+
+.sess-combat-member {
+  border:1px solid var(--border-sub); margin-bottom:8px;
+  background:var(--card-bg);
+}
+.sess-combat-member-header {
+  padding:10px; cursor:pointer; transition:background 0.15s;
+}
+.sess-combat-member-header:hover { background:var(--card-hover); }
+.sess-combat-member-identity {
+  display:flex; align-items:center; gap:8px; margin-bottom:6px;
+}
+.sess-combat-member-avatar {
+  width:28px; height:28px; border-radius:50%; object-fit:cover;
+  border:1px solid var(--border); flex-shrink:0;
+}
+.sess-combat-member-avatar-ph {
+  width:28px; height:28px; border-radius:50%;
+  border:1px solid var(--border); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.5rem; color:var(--dim); background:var(--input-bg);
+}
+.sess-combat-member-name {
+  font-family:'Cinzel',serif; font-size:0.78rem; color:var(--text); flex:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sess-combat-expand {
+  font-size:0.6rem; color:var(--dim); flex-shrink:0;
+}
+
+/* HP Bar */
+.sess-combat-hp-row {
+  display:flex; align-items:center; gap:8px;
+}
+.sess-combat-hp-bar {
+  flex:1; height:6px; background:var(--border-sub); border-radius:3px; overflow:hidden;
+}
+.sess-combat-hp-fill {
+  height:100%; border-radius:3px; transition:width 0.3s ease, background 0.3s ease;
+}
+.sess-combat-hp-fill.high { background:#5aaa66; }
+.sess-combat-hp-fill.mid { background:#d4a040; }
+.sess-combat-hp-fill.low { background:#c05050; }
+.sess-combat-hp-text {
+  font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim);
+  white-space:nowrap; flex-shrink:0;
+}
+.sess-combat-armor-line {
+  font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--dim); margin-top:4px;
+}
+
+/* Expanded detail */
+.sess-combat-detail {
+  padding:0 10px 10px; border-top:1px solid var(--border-sub);
+  animation:fadein 0.2s ease;
+}
+
+/* HP Controls */
+.sess-combat-hp-controls {
+  display:flex; gap:4px; margin:8px 0; align-items:center;
+}
+.sess-hp-btn {
+  font-family:'Orbitron',sans-serif; font-size:0.55rem;
+  padding:3px 8px; background:transparent; border:1px solid var(--border);
+  color:var(--dim); cursor:pointer; transition:all 0.2s;
+}
+.sess-hp-btn:hover { border-color:var(--crimson); color:var(--text); }
+.sess-hp-btn.danger { border-color:rgba(180,40,40,0.35); color:#a05050; }
+.sess-hp-btn.danger:hover { border-color:#c05050; color:#e07070; }
+.sess-hp-btn.green { border-color:rgba(58,138,68,0.4); color:#5aaa66; }
+.sess-hp-btn.green:hover { border-color:#4a9a54; color:#6acc74; }
+.sess-hp-input {
+  width:40px; font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  background:var(--input-bg); border:1px solid var(--border);
+  color:var(--text); padding:3px 6px; text-align:center;
+}
+
+/* Stat sections */
+.sess-combat-stat-section { margin-top:8px; }
+.sess-combat-stat-title {
+  font-family:'Orbitron',sans-serif; font-size:0.5rem; letter-spacing:0.15em;
+  color:var(--crimson); text-transform:uppercase; margin-bottom:4px;
+}
+.sess-combat-stat-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:2px 0; font-size:0.7rem;
+}
+.sess-combat-stat-name {
+  font-family:'Cinzel',serif; color:var(--text);
+}
+.sess-combat-stat-value {
+  font-family:'Share Tech Mono',monospace; color:var(--mono);
+}
+
+/* Attributes grid */
+.sess-combat-attrs-grid {
+  display:flex; flex-wrap:wrap; gap:4px 8px;
+}
+.sess-combat-attr-pip {
+  font-family:'Share Tech Mono',monospace; font-size:0.6rem; color:var(--dim);
+}
+
+/* ── CONDITIONS ── */
+.sess-combat-conditions {
+  display:flex; flex-wrap:wrap; gap:3px; margin-top:4px;
+}
+.sess-condition-badge {
+  font-family:'Orbitron',sans-serif; font-size:0.46rem; letter-spacing:0.08em;
+  padding:2px 6px; border:1px solid var(--border);
+  background:rgba(220,20,60,0.06); color:var(--crimson);
+  text-transform:uppercase; display:inline-flex; align-items:center; gap:3px;
+  line-height:1;
+}
+.sess-condition-badge.wounded  { border-color:#c05050; color:#c05050; background:rgba(192,80,80,0.08); }
+.sess-condition-badge.stunned  { border-color:#d4a040; color:#d4a040; background:rgba(212,160,64,0.08); }
+.sess-condition-badge.prone    { border-color:#8888cc; color:#8888cc; background:rgba(136,136,204,0.08); }
+.sess-condition-badge.blinded  { border-color:#888; color:#888; background:rgba(136,136,136,0.08); }
+.sess-condition-badge.grappled { border-color:#cc8844; color:#cc8844; background:rgba(204,136,68,0.08); }
+.sess-condition-remove {
+  background:none; border:none; color:inherit; cursor:pointer;
+  font-size:0.55rem; padding:0 1px; opacity:0.5; line-height:1;
+}
+.sess-condition-remove:hover { opacity:1; }
+
+.sess-condition-picker {
+  display:flex; flex-wrap:wrap; gap:3px;
+}
+.sess-condition-add-btn {
+  font-family:'Orbitron',sans-serif; font-size:0.46rem; letter-spacing:0.08em;
+  padding:2px 6px; border:1px dashed var(--border-sub);
+  background:transparent; color:var(--dim); cursor:pointer;
+  text-transform:uppercase; transition:all 0.2s;
+}
+.sess-condition-add-btn:hover { border-color:var(--crimson); color:var(--text); border-style:solid; }
+
+.sess-defense-prompt-conditions {
+  font-family:'Share Tech Mono',monospace; font-size:0.62rem;
+  color:var(--dim); margin-bottom:8px; font-style:italic;
+  text-transform:capitalize;
+}
+
+/* ── ACTIONS PANEL ── */
+.sess-actions-grid {
+  display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;
+}
+.sess-action-card {
+  border:1px solid var(--border-sub); padding:10px 12px;
+  background:var(--card-bg); cursor:pointer; transition:all 0.2s;
+}
+.sess-action-card:hover { border-color:var(--crimson); background:var(--card-hover); }
+.sess-action-card.selected {
+  border-color:var(--crimson); background:rgba(220,20,60,0.08);
+  box-shadow:inset 3px 0 0 var(--crimson);
+}
+.sess-action-card-top {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  margin-bottom:4px;
+}
+.sess-action-name {
+  font-family:'Cinzel',serif; font-size:0.82rem; color:var(--text);
+}
+.sess-action-badges {
+  display:flex; gap:4px; flex-shrink:0;
+}
+.sess-action-type {
+  font-family:'Orbitron',sans-serif; font-size:0.46rem; letter-spacing:0.1em;
+  padding:2px 6px; border:1px solid var(--border);
+  text-transform:uppercase;
+}
+.sess-action-type.minor { color:#5aaa66; border-color:rgba(90,170,102,0.4); }
+.sess-action-type.action { color:var(--crimson); border-color:var(--border); }
+.sess-action-cost {
+  font-family:'Share Tech Mono',monospace; font-size:0.58rem;
+  padding:2px 6px; border:1px solid rgba(100,140,255,0.3);
+  color:#88aaff;
+}
+.sess-action-desc {
+  font-family:'Share Tech Mono',monospace; font-size:0.65rem;
+  color:var(--dim); line-height:1.5;
+}
+.sess-action-target { padding:0 4px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width:768px) {
+  .sess-combat-sidebar {
+    position:fixed; right:0; top:0; bottom:0; z-index:50;
+    width:300px; max-width:85vw;
+    border-left:2px solid var(--crimson);
+    box-shadow:-4px 0 20px rgba(0,0,0,0.4);
+  }
+}
+@media (max-width:600px) {
+  .sess-card { flex-direction:column; align-items:stretch; gap:10px; }
+  .sess-card-actions { justify-content:flex-end; }
+  .sess-room { height:calc(100vh - 180px); }
+  .sess-roll-config { grid-template-columns:1fr; }
+  .sess-create { flex-direction:column; }
+  .sess-create .ct-add-btn { width:100%; }
+  .sess-room-header { flex-wrap:wrap; gap:8px; }
+  .sess-room-toolbar { width:100%; justify-content:flex-end; }
+}

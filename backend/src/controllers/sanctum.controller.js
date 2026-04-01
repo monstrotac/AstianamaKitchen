@@ -19,7 +19,7 @@ function canSee(visibility, user, spireRank) {
   }
   if (visibility.startsWith('user:')) {
     const target = visibility.split(':')[1].toLowerCase();
-    return user.codeName?.toLowerCase() === target;
+    return user.username?.toLowerCase() === target;
   }
   return false;
 }
@@ -47,8 +47,8 @@ async function getUserSpireRank(userId) {
 
 const CHAR_SELECT = `
   SELECT sc.*,
-         u.code_name,
-         mu.code_name AS master_code_name, mu.id AS master_user_id
+         u.username,
+         mu.username AS master_username, mu.id AS master_user_id
   FROM spire_characters sc
   JOIN users u ON u.id = sc.user_id
   LEFT JOIN users mu ON mu.id = sc.master_id
@@ -62,7 +62,7 @@ async function listCharacters(req, res) {
     const { rows } = await pool.query(
       `${CHAR_SELECT}
        WHERE u.is_active = true
-         AND (LOWER(sc.character_name) LIKE LOWER($1) OR LOWER(u.code_name) LIKE LOWER($1))
+         AND (LOWER(sc.character_name) LIKE LOWER($1) OR LOWER(u.username) LIKE LOWER($1))
        ORDER BY sc.created_at DESC
        LIMIT 20`,
       [`%${search}%`]
@@ -112,13 +112,29 @@ async function getCharacter(req, res) {
 }
 
 function validateAttrs(body) {
-  const ATTR_KEYS = ['str', 'dex', 'con', 'int_score', 'wis', 'cha'];
+  const ATTR_KEYS = ['str', 'dex', 'sta', 'cha', 'man', 'app', 'per', 'int_score', 'wit'];
   for (const key of ATTR_KEYS) {
     if (body[key] !== undefined) {
       const v = body[key];
-      if (!Number.isInteger(v) || v < -2 || v > 5) {
-        return `${key} must be an integer between -2 and 5`;
+      if (!Number.isInteger(v) || v < 1 || v > 5) {
+        return `${key} must be an integer between 1 and 5`;
       }
+    }
+  }
+  // Validate force fields
+  const FORCE_KEYS = { force_attunement: 10, willpower_score: 10, control: 5, sense: 5, alter_discipline: 5 };
+  for (const [key, max] of Object.entries(FORCE_KEYS)) {
+    if (body[key] !== undefined) {
+      const v = body[key];
+      if (!Number.isInteger(v) || v < 0 || v > max) {
+        return `${key} must be an integer between 0 and ${max}`;
+      }
+    }
+  }
+  // Validate armor
+  if (body.armor !== undefined) {
+    if (!['unarmored', 'light', 'medium', 'heavy'].includes(body.armor)) {
+      return `armor must be one of: unarmored, light, medium, heavy`;
     }
   }
   return null;
@@ -128,7 +144,8 @@ async function createCharacter(req, res) {
   const userId = req.user.sub;
   const {
     spire_rank, status_name, species, bio, master_id,
-    str, dex, con, int_score, wis, cha,
+    str, dex, sta, cha, man, app, per, int_score, wit,
+    force_attunement, willpower_score, control, sense, alter_discipline, armor,
     total_xp, spent_xp,
     character_name, full_name, quote, age, height,
     eye_color, hair_color, skin_color, tattoos_distinctions,
@@ -142,21 +159,25 @@ async function createCharacter(req, res) {
   const { rows: [char] } = await pool.query(
     `INSERT INTO spire_characters
        (user_id, spire_rank, status_name, species, bio, master_id,
-        str, dex, con, int_score, wis, cha, total_xp, spent_xp,
+        str, dex, sta, cha, man, app, per, int_score, wit,
+        force_attunement, willpower_score, control, sense, alter_discipline, armor,
+        total_xp, spent_xp,
         character_name, full_name, quote, age, height,
         eye_color, hair_color, skin_color, tattoos_distinctions,
         alignment, homeworld, occupation, affiliation, relationship_status,
         likes, dislikes, biography, skills_narrative, weapons, gear)
      VALUES
-       ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,
-        $15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,
-        $29,$30,$31,$32,$33,$34)
+       ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
+        $16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,
+        $29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40,$41,$42,$43)
      RETURNING *`,
     [
       userId,
       spire_rank || 'acolyte',
       status_name || null, species || null, bio || null, master_id || null,
-      str ?? 1, dex ?? 1, con ?? 1, int_score ?? 1, wis ?? 1, cha ?? 1,
+      str ?? 0, dex ?? 0, sta ?? 0, cha ?? 0, man ?? 0, app ?? 0, per ?? 0, int_score ?? 0, wit ?? 0,
+      force_attunement ?? 0, willpower_score ?? 0, control ?? 0, sense ?? 0, alter_discipline ?? 0,
+      armor || 'unarmored',
       total_xp ?? 0, spent_xp ?? 0,
       character_name || null, full_name || null, quote || null,
       age || null, height || null,
@@ -204,7 +225,8 @@ async function updateCharacter(req, res) {
 
   const allowed = [
     'spire_rank','status_name','species','bio','master_id',
-    'str','dex','con','int_score','wis','cha',
+    'str','dex','sta','cha','man','app','per','int_score','wit',
+    'force_attunement','willpower_score','control','sense','alter_discipline','armor',
     'total_xp','spent_xp',
     'character_name','full_name','quote','age','height',
     'eye_color','hair_color','skin_color','tattoos_distinctions',
@@ -273,6 +295,15 @@ async function setActiveCharacter(req, res) {
     [charId || null, userId]
   );
   res.json({ ok: true, active_character_id: charId || null });
+}
+
+// ── Combat Ability Definitions ────────────────────────────────────────────────
+
+async function getCombatAbilities(req, res) {
+  const { rows } = await pool.query(
+    'SELECT * FROM combat_ability_definitions ORDER BY type, sort_order'
+  );
+  res.json(rows);
 }
 
 // ── Skills ────────────────────────────────────────────────────────────────────
@@ -345,7 +376,7 @@ async function deleteSkill(req, res) {
 
 async function getDescriptions(req, res) {
   const { rows } = await pool.query(
-    'SELECT type, key, label, description FROM spire_descriptions ORDER BY type, key'
+    'SELECT type, key, label, description, rank_descriptions FROM spire_descriptions ORDER BY type, key'
   );
   res.json(rows);
 }
@@ -376,8 +407,8 @@ async function listTrials(req, res) {
   const whereClause = `WHERE ${conditions.join(' AND ')}`;
   const { rows } = await pool.query(
     `SELECT t.*,
-            u1.code_name AS assigned_to_name,
-            u2.code_name AS assigned_by_name,
+            u1.username AS assigned_to_name,
+            u2.username AS assigned_by_name,
             sc.character_name AS creator_name, sc.image_url AS creator_image_url
      FROM trials t
      LEFT JOIN users u1 ON u1.id = t.assigned_to
@@ -418,8 +449,8 @@ async function getTrial(req, res) {
   const spireRank = req.user ? await getUserSpireRank(req.user.sub) : null;
   const { rows } = await pool.query(
     `SELECT t.*,
-            u1.code_name AS assigned_to_name,
-            u2.code_name AS assigned_by_name
+            u1.username AS assigned_to_name,
+            u2.username AS assigned_by_name
      FROM trials t
      LEFT JOIN users u1 ON u1.id = t.assigned_to
      LEFT JOIN users u2 ON u2.id = t.assigned_by
@@ -493,7 +524,7 @@ async function listEntries(req, res) {
     return res.json([]);
   }
   const { rows } = await pool.query(
-    `SELECT te.*, u.code_name AS author_name
+    `SELECT te.*, u.username AS author_name
      FROM trial_entries te
      LEFT JOIN users u ON u.id = te.author_id
      WHERE te.trial_id=$1
@@ -530,7 +561,7 @@ async function addEntry(req, res) {
 async function listEvents(req, res) {
   const spireRank = req.user ? await getUserSpireRank(req.user.sub) : null;
   const { rows } = await pool.query(
-    `SELECT e.*, u.code_name AS author_name
+    `SELECT e.*, u.username AS author_name
      FROM events e
      LEFT JOIN users u ON u.id = e.author_id
      ORDER BY e.created_at DESC
@@ -608,7 +639,7 @@ async function listStories(req, res) {
 async function getStory(req, res) {
   const { charId, storyId } = req.params;
   const { rows } = await pool.query(
-    `SELECT cs.*, u.code_name AS author_name, sc.character_name
+    `SELECT cs.*, u.username AS author_name, sc.character_name
      FROM character_stories cs
      LEFT JOIN users u ON u.id = cs.user_id
      LEFT JOIN spire_characters sc ON sc.id = cs.character_id
@@ -717,7 +748,7 @@ async function deleteStory(req, res) {
 async function listRecentStories(req, res) {
   const userId = req.user?.sub ?? null;
   const { rows } = await pool.query(
-    `SELECT cs.*, u.code_name AS author_name,
+    `SELECT cs.*, u.username AS author_name,
             sc.character_name, sc.image_url AS char_image_url
      FROM character_stories cs
      LEFT JOIN users u ON u.id = cs.user_id
@@ -737,9 +768,9 @@ async function getActivityFeed(req, res) {
   const [charsRes, trialsRes, storiesRes] = await Promise.all([
     pool.query(
       `SELECT sc.id, sc.character_name AS title, NULL AS body, 'public' AS visibility, sc.created_at,
-              u.code_name AS author_name, 'character' AS feed_type, NULL AS subject,
+              u.username AS author_name, 'character' AS feed_type, NULL AS subject,
               NULL AS status, sc.user_id,
-              sc.full_name, u.code_name AS username
+              sc.full_name, u.username AS username
        FROM spire_characters sc
        JOIN users u ON u.id = sc.user_id
        WHERE u.is_active = true
@@ -747,7 +778,7 @@ async function getActivityFeed(req, res) {
     ),
     pool.query(
       `SELECT t.id, t.title, t.description AS body, 'public' AS visibility, t.created_at,
-              u.code_name AS author_name, 'trial' AS feed_type, NULL AS subject,
+              u.username AS author_name, 'trial' AS feed_type, NULL AS subject,
               t.status, t.assigned_to AS user_id
        FROM trials t
        LEFT JOIN users u ON u.id = t.assigned_to
@@ -758,7 +789,7 @@ async function getActivityFeed(req, res) {
     ),
     pool.query(
       `SELECT cs.id, cs.title, cs.body, cs.visibility, cs.created_at,
-              u.code_name AS author_name, 'story' AS feed_type, NULL AS subject,
+              u.username AS author_name, 'story' AS feed_type, NULL AS subject,
               NULL AS status, cs.user_id, cs.character_id
        FROM character_stories cs
        LEFT JOIN users u ON u.id = cs.user_id
@@ -804,7 +835,7 @@ async function listReports(req, res) {
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const { rows } = await pool.query(
-    `SELECT r.*, u.code_name AS author_name,
+    `SELECT r.*, u.username AS author_name,
             sc.character_name AS creator_name, sc.image_url AS creator_image_url
      FROM reports r
      LEFT JOIN users u ON u.id = r.author_id
@@ -819,7 +850,7 @@ async function listReports(req, res) {
 async function getReport(req, res) {
   const { id } = req.params;
   const { rows } = await pool.query(
-    `SELECT r.*, u.code_name AS author_name,
+    `SELECT r.*, u.username AS author_name,
             sc.character_name AS creator_name, sc.image_url AS creator_image_url
      FROM reports r
      LEFT JOIN users u ON u.id = r.author_id
@@ -899,6 +930,7 @@ async function deleteReport(req, res) {
 module.exports = {
   listCharacters, listMyCharacters, listCharactersForUser, getCharacter,
   createCharacter, updateCharacter, uploadImage, setActiveCharacter,
+  getCombatAbilities,
   listSkills, upsertSkills, deleteSkill,
   getDescriptions,
   listTrials, createTrial, getTrial, updateTrialStatus, deleteTrial,

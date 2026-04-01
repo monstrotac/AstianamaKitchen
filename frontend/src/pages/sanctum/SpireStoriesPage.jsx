@@ -4,6 +4,7 @@ import { getRecentStories, createStory } from '../../api/sanctum';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSanctum } from '../../contexts/SanctumContext';
 import { useTitle } from '../../hooks/useTitle';
+import GuestBanner from '../../components/ui/GuestBanner';
 
 const PAGE_SIZE = 10;
 
@@ -112,6 +113,7 @@ export default function SpireStoriesPage() {
 
   return (
     <div>
+      <GuestBanner />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
         <div className="s-section-title" style={{ margin: 0 }}>Chronicles</div>
         {isMember && (

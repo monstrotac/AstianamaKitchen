@@ -17,22 +17,22 @@ export default function CharacterCard({ char }) {
     <Link to={`/characters/${char.id}`} className="s-card">
       <div className="s-card-portrait">
         {imageUrl
-          ? <img src={imageUrl} alt={char.code_name} />
+          ? <img src={imageUrl} alt={char.username} />
           : <SilhouetteSVG />
         }
       </div>
       <div className="s-card-info">
-        <div className="s-card-name">{char.character_name || char.code_name}</div>
+        <div className="s-card-name">{char.character_name || char.username}</div>
         <div className="s-card-status">
           <RankBadge rank={char.spire_rank} />
           {char.status_name && <span style={{ marginLeft: '0.5rem', fontSize: '0.68rem', opacity: 0.7 }}>{char.status_name}</span>}
         </div>
         <div style={{ fontSize: '0.65rem', marginTop: '0.3rem', opacity: 0.5, fontFamily: "'Share Tech Mono',monospace" }}>
-          by {char.code_name}
+          by {char.username}
         </div>
-        {char.master_code_name && (
+        {char.master_username && (
           <div style={{ fontSize: '0.65rem', marginTop: '0.15rem', opacity: 0.5 }}>
-            Master: {char.master_code_name}
+            Master: {char.master_username}
           </div>
         )}
       </div>

@@ -16,6 +16,10 @@ export const uploadImage      = (charId, file)  => {
   }).then(r => r.data);
 };
 
+// ── Combat Abilities ─────────────────────────────────────────────────────────
+
+export const getCombatAbilities = () => client.get('/sanctum/combat-abilities').then(r => r.data);
+
 // ── Active character ──────────────────────────────────────────────────────────
 
 export const setActiveCharacter = (charId) =>

@@ -81,7 +81,7 @@ function CharacterRow({ char, onChange }) {
           onClick={toggleExpand}
           style={{ background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer', padding: 0, fontFamily: 'inherit', fontSize: 'inherit', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
         >
-          {char.code_name}
+          {char.username}
           <span style={{ fontSize: '0.6rem', color: 'var(--dim)', opacity: 0.7 }}>{expanded ? '▴' : '▾'}</span>
         </button>
       </div>
@@ -143,7 +143,7 @@ function GuestRow({ guest, onPromoted }) {
   return (
     <div className="oversight-guest-row">
       <div style={{ flex: 1 }}>
-        <div className="oversight-codename-guest">{guest.codeName}</div>
+        <div className="oversight-codename-guest">{guest.username}</div>
         <div style={{ fontSize: '0.68rem', color: 'var(--dim)', opacity: 0.6, fontFamily: "'Share Tech Mono',monospace" }}>
           {guest.email} · registered {new Date(guest.createdAt).toLocaleDateString()}
         </div>

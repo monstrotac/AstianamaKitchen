@@ -273,8 +273,8 @@ header { text-align:center; padding:48px 20px 30px; }
 }
 .ct-roll-badge.success    { border-color:var(--crimson); color:var(--crimson); }
 .ct-roll-badge.failure    { border-color:#3a2a2a; color:#664444; }
-.ct-roll-badge.nat20      { border-color:var(--bright-red); color:var(--bright-red); }
-.ct-roll-badge.nat1       { border-color:#3a1515; color:#6a3030; }
+.ct-roll-badge.crit_success { border-color:var(--bright-red); color:var(--bright-red); }
+.ct-roll-badge.crit_failure { border-color:#3a1515; color:#6a3030; }
 .ct-roll-situation { font-family:'Cinzel',serif; font-size:0.82rem; color:var(--text); flex:1; font-style:italic; }
 .ct-roll-date { font-family:'Share Tech Mono',monospace; font-size:0.62rem; color:var(--dim); flex-shrink:0; }
 .ct-roll-breakdown { font-family:'Share Tech Mono',monospace; font-size:0.67rem; color:var(--dim); line-height:1.5; }
@@ -291,7 +291,7 @@ header { text-align:center; padding:48px 20px 30px; }
   padding-bottom:10px; border-bottom:1px solid rgba(220,20,60,0.15);
 }
 .ct-close-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-@media(max-width:560px){ .ct-close-grid{grid-template-columns:1fr} }
+@media(max-width:480px){ .ct-close-grid{grid-template-columns:1fr} }
 .ct-close-grid .full { grid-column:1/-1; }
 .ct-close-label {
   font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.18em;
@@ -394,7 +394,7 @@ header { text-align:center; padding:48px 20px 30px; }
 
 /* ── ROLLER ── */
 .roller-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-@media(max-width:680px) { .roller-grid{grid-template-columns:1fr} }
+@media(max-width:768px) { .roller-grid{grid-template-columns:1fr} }
 .dc-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
 .dc-num  { font-family:'Orbitron',sans-serif; font-size:1.3rem; color:var(--crimson); font-weight:700; }
 .dc-lbl  { font-family:'Share Tech Mono',monospace; font-size:0.68rem; color:var(--dim); }
@@ -492,7 +492,7 @@ header { text-align:center; padding:48px 20px 30px; }
 .codex-veil .c-num { color: rgba(100,160,220,0.6); }
 
 .id-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-@media(max-width:540px) { .id-grid{grid-template-columns:1fr} }
+@media(max-width:768px) { .id-grid{grid-template-columns:1fr} }
 .id-card { border:1px solid var(--border-sub); padding:20px; background:var(--overlay); }
 .id-card.secret { border-color:rgba(220,20,60,0.4); background:rgba(139,0,0,0.06); box-shadow:0 0 16px rgba(220,20,60,0.08); }
 .id-badge { font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.22em; color:rgba(220,20,60,0.5); margin-bottom:10px; text-transform:uppercase; }
@@ -502,7 +502,7 @@ header { text-align:center; padding:48px 20px 30px; }
 
 /* ── FACTION GRID (3 col) ── */
 .faction-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-@media(max-width:680px) { .faction-grid{grid-template-columns:1fr} }
+@media(max-width:768px) { .faction-grid{grid-template-columns:1fr} }
 
 /* ── Solstice variant ── */
 .id-card-solstice { border-color:rgba(136,68,170,0.35); background:rgba(80,0,80,0.06); box-shadow:0 0 14px rgba(136,68,170,0.07); }
@@ -511,7 +511,7 @@ header { text-align:center; padding:48px 20px 30px; }
 
 /* ── PROFILE / SHEET ── */
 .sheet-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
-@media(max-width:640px) { .sheet-grid{grid-template-columns:1fr} }
+@media(max-width:768px) { .sheet-grid{grid-template-columns:1fr} }
 .skill-table { width:100%; border-collapse:collapse; }
 .skill-table th {
   font-family:'Orbitron',sans-serif; font-size:0.58rem; letter-spacing:0.2em;
@@ -608,7 +608,7 @@ footer {
 
 /* ── CONTRACT FORM GRID ── */
 .ct-form { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:0; }
-@media(max-width:600px){ .ct-form{grid-template-columns:1fr} }
+@media(max-width:480px){ .ct-form{grid-template-columns:1fr} }
 .ct-form .full { grid-column:1/-1; }
 
 /* ── ADMIN ── */
@@ -725,4 +725,99 @@ footer {
   font-size: 0.9rem;
   color: var(--text);
   margin-bottom: 2px;
+}
+
+/* ── D20 Die Wrapper ── */
+.d20-die-wrap { position: relative; width: 130px; height: 130px; }
+.d20-die-wrap svg { width: 100%; height: 100%; }
+
+/* ── Garden Mode Switch ── */
+.garden-mode-switch-wrap {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+/* ── Guest Panel (Dashboard) ── */
+.guest-panel-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 60px;
+}
+.guest-panel {
+  max-width: 480px;
+}
+
+/* ── Mobile Responsive ───────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Oversight grid */
+  .oversight-header,
+  .oversight-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .oversight-code-cell { display: none; }
+
+  /* Tabs - horizontal scroll */
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 9px 16px;
+    font-size: 0.62rem;
+  }
+
+  /* Header */
+  header { padding: 32px 16px 22px; }
+
+  /* Skill table */
+  .skill-table { display: block; overflow-x: auto; }
+}
+
+@media (max-width: 480px) {
+  /* Oversight grid */
+  .oversight-header,
+  .oversight-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .oversight-header { display: none; }
+  .oversight-guest-row { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Panel padding */
+  .panel { padding: 18px 14px 16px; }
+
+  /* Die size */
+  .d20-die-wrap { width: 90px; height: 90px; }
+
+  /* Mode switch */
+  .garden-mode-switch-wrap {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Guest panel */
+  .guest-panel-wrap { padding-top: 24px; }
+  .guest-panel { max-width: 100%; }
+
+  /* Contract details grid */
+  .cc-details { grid-template-columns: 1fr; }
+
+  /* Header */
+  header { padding: 20px 12px 16px; }
+  .sigil { width: 50px; height: 50px; margin-bottom: 12px; }
+  .subtitle { font-size: 0.65rem; letter-spacing: 0.18em; }
+  .tagline { font-size: 0.78rem; }
+
+  /* Footer */
+  footer { padding: 18px 12px; font-size: 0.55rem; }
 }

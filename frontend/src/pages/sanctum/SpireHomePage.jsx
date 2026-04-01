@@ -126,7 +126,7 @@ function FeedItem({ item }) {
             <span className="s-feed-title">{item.title}</span>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           {item.feed_type === 'character' ? (
             <span style={{ fontSize: '0.6rem', color: 'var(--dim)', fontFamily: "'Share Tech Mono',monospace" }}>
               {[item.username, item.title, item.full_name].filter(Boolean).join(' · ')}

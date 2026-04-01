@@ -7,7 +7,7 @@ function buildUserPayload(u) {
   return {
     id:           u.id,
     email:        u.email,
-    codeName:     u.code_name,
+    username:     u.username,
     role:         u.role,
     faction:      u.char_faction || null,   // derived from active character
     hasCharacter: !!u.active_character_id,  // true once any character exists
@@ -19,7 +19,7 @@ async function login(req, res) {
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.email, u.code_name, u.role, u.password_hash, u.is_active,
+    `SELECT u.id, u.email, u.username, u.role, u.password_hash, u.is_active,
             u.active_character_id, sc.faction AS char_faction
      FROM users u
      LEFT JOIN spire_characters sc ON sc.id = u.active_character_id
@@ -34,7 +34,7 @@ async function login(req, res) {
 
   const payload = buildUserPayload(user);
   const token = jwt.sign(
-    { sub: payload.id, role: payload.role, codeName: payload.codeName, faction: payload.faction },
+    { sub: payload.id, role: payload.role, username: payload.username, faction: payload.faction },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -44,7 +44,7 @@ async function login(req, res) {
 
 async function me(req, res) {
   const { rows } = await pool.query(
-    `SELECT u.id, u.email, u.code_name, u.role, u.created_at,
+    `SELECT u.id, u.email, u.username, u.role, u.created_at,
             u.active_character_id, sc.faction AS char_faction
      FROM users u
      LEFT JOIN spire_characters sc ON sc.id = u.active_character_id
@@ -56,23 +56,23 @@ async function me(req, res) {
 }
 
 async function register(req, res) {
-  const { email, password, codeName } = req.body;
-  if (!email || !password || !codeName)
-    return res.status(400).json({ error: 'email, password, codeName required' });
+  const { email, password, username } = req.body;
+  if (!email || !password || !username)
+    return res.status(400).json({ error: 'email, password, username required' });
   if (password.length < 6)
     return res.status(400).json({ error: 'Passphrase must be at least 6 characters' });
 
   const hash = await bcrypt.hash(password, 12);
   try {
     const { rows: [user] } = await pool.query(
-      `INSERT INTO users (email, password_hash, code_name, role)
-       VALUES ($1, $2, $3, 'guest') RETURNING id, email, code_name, role`,
-      [email.toLowerCase().trim(), hash, codeName.trim()]
+      `INSERT INTO users (email, password_hash, username, role)
+       VALUES ($1, $2, $3, 'guest') RETURNING id, email, username, role`,
+      [email.toLowerCase().trim(), hash, username.trim()]
     );
 
-    const payload = { id: user.id, email: user.email, codeName: user.code_name, role: user.role, faction: null };
+    const payload = { id: user.id, email: user.email, username: user.username, role: user.role, faction: null };
     const token = jwt.sign(
-      { sub: payload.id, role: payload.role, codeName: payload.codeName, faction: null },
+      { sub: payload.id, role: payload.role, username: payload.username, faction: null },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );

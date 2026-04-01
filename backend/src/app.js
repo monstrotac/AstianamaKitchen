@@ -9,6 +9,7 @@ const rollsRoutes    = require('./routes/rolls.routes');
 const codexRoutes    = require('./routes/codex.routes');
 const skillsRoutes   = require('./routes/skills.routes');
 const sanctumRoutes  = require('./routes/sanctum.routes');
+const sessionRoutes  = require('./routes/sessions.routes');
 
 const app  = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -30,6 +31,7 @@ app.use('/api/contracts', rollsRoutes);
 app.use('/api/codex',     codexRoutes);
 app.use('/api/skills',    skillsRoutes);
 app.use('/api/sanctum',   sanctumRoutes);
+app.use('/api/sessions',  sessionRoutes);
 
 // In production: serve the built frontend and fall through to index.html
 if (PROD) {

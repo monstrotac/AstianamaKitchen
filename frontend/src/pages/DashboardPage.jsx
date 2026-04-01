@@ -16,11 +16,11 @@ export default function DashboardPage() {
 
   if (isGuest) {
     return (
-      <div style={{display:'flex',justifyContent:'center',paddingTop:60}}>
-        <div className="panel" style={{maxWidth:480,textAlign:'center'}}>
+      <div className="guest-panel-wrap">
+        <div className="panel guest-panel" style={{textAlign:'center'}}>
           <div className="panel-title">Clearance Pending</div>
           <p style={{color:'var(--dim)',fontSize:'0.82rem',lineHeight:1.7,margin:'16px 0'}}>
-            Your request has been received, <span style={{color:'var(--crimson)'}}>{user?.codeName}</span>.<br/>
+            Your request has been received, <span style={{color:'var(--crimson)'}}>{user?.username}</span>.<br/>
             The Solstice will review your clearance. You will be granted access once your faction is assigned.
           </p>
           <div style={{fontSize:'0.65rem',letterSpacing:'0.15em',color:'var(--dim)',opacity:0.5}}>

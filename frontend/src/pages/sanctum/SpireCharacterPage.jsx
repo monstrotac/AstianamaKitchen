@@ -45,7 +45,7 @@ function StoryBodyRenderer({body}){
   flush();
   return <div className="s-report-formatted">{output}</div>;
 }
-function StoryCard({story, charId, codeName, isOwn, onDelete}){
+function StoryCard({story, charId, username, isOwn, onDelete}){
   const [expanded,setExpanded]=useState(false);
   const isDraft=!story.is_published;
   const isEmpty=!story.title?.trim()&&!story.body?.trim();
@@ -76,7 +76,7 @@ function StoryCard({story, charId, codeName, isOwn, onDelete}){
         </button>
       )}
       {!isEmpty&&(
-        <div className="s-story-card-byline">◆ {codeName}</div>
+        <div className="s-story-card-byline">◆ {username}</div>
       )}
     </div>
   );
@@ -105,7 +105,7 @@ export default function SpireCharacterPage() {
   const [tab, setTab]         = useState('profile');
   const [editMode, setEditMode] = useState(false);
   const [char, setChar]       = useState(null);
-  useTitle(char?.code_name);
+  useTitle(char?.username);
   const [skills, setSkills]   = useState([]);
   const [trials, setTrials]   = useState([]);
   const [reports, setReports] = useState([]);
@@ -138,9 +138,9 @@ export default function SpireCharacterPage() {
   }, [char?.user_id]);
 
   const loadReports = useCallback(() => {
-    if (!char?.code_name) return;
-    getReports({ subject: char.code_name }).then(setReports).catch(() => {});
-  }, [char?.code_name]);
+    if (!char?.username) return;
+    getReports({ subject: char.username }).then(setReports).catch(() => {});
+  }, [char?.username]);
 
   const loadStories = useCallback(() => {
     getStories(charId).then(setStories).catch(() => {});
@@ -168,7 +168,7 @@ export default function SpireCharacterPage() {
     setFormError('');
     try {
       const report = await createReport({});
-      await updateReport(report.id, { subject: char.code_name, creator_character_id: char.id });
+      await updateReport(report.id, { subject: char.username, creator_character_id: char.id });
       navigate(`/reports/${report.id}/edit`);
     } catch (err) {
       setFormError(err.response?.data?.error || 'Failed to create report');
@@ -227,7 +227,7 @@ export default function SpireCharacterPage() {
 
       {/* Character Sheet tab */}
       {tab === 'sheet' && (
-        <div>
+        <div className="s-sheet-container">
           {isOwn && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
               <button className="s-btn small" onClick={() => setEditMode(p => !p)}>
@@ -251,7 +251,7 @@ export default function SpireCharacterPage() {
       {tab === 'trials' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div className="s-section-title" style={{ margin: 0 }}>Trials — {char.character_name || char.code_name}</div>
+            <div className="s-section-title" style={{ margin: 0 }}>Trials — {char.character_name || char.username}</div>
             {isMember && (
               <button className="s-btn small" onClick={handleCreateTrial} disabled={saving}>
                 {saving ? '…' : '+ New Trial'}
@@ -270,7 +270,7 @@ export default function SpireCharacterPage() {
       {tab === 'reports' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <div className="s-section-title" style={{ margin: 0 }}>Reports — {char.character_name || char.code_name}</div>
+            <div className="s-section-title" style={{ margin: 0 }}>Reports — {char.character_name || char.username}</div>
             {isMember && (
               <button className="s-btn small" onClick={handleCreateReport} disabled={saving}>
                 {saving ? '…' : '◆ File Report'}
@@ -307,7 +307,7 @@ export default function SpireCharacterPage() {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <div className="s-section-title" style={{ margin: 0 }}>
-              Stories — {char.character_name || char.code_name}
+              Stories — {char.character_name || char.username}
             </div>
             {isOwn && (
               <button className="s-btn small" onClick={handleCreateStory} disabled={saving}>
@@ -325,7 +325,7 @@ export default function SpireCharacterPage() {
                 key={story.id}
                 story={story}
                 charId={charId}
-                codeName={char.code_name}
+                username={char.username}
                 isOwn={isOwn}
                 onDelete={handleDeleteStory}
               />

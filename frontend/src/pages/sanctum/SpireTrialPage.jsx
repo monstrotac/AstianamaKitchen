@@ -143,10 +143,11 @@ export default function SpireTrialPage() {
           </div>
           {form.entry_type === 'roll' && spireChar && (() => {
             const attrs = {
-              str: spireChar.str || 1, dex: spireChar.dex || 1, con: spireChar.con || 1,
-              int_score: spireChar.int_score || 1, wis: spireChar.wis || 1, cha: spireChar.cha || 1,
+              str: spireChar.str ?? 0, dex: spireChar.dex ?? 0, sta: spireChar.sta ?? 0,
+              cha: spireChar.cha ?? 0, man: spireChar.man ?? 0, app: spireChar.app ?? 0,
+              per: spireChar.per ?? 0, int_score: spireChar.int_score ?? 0, wit: spireChar.wit ?? 0,
             };
-            const canAdd = rollData?.nat > 0;
+            const canAdd = rollData?.die1 > 0 && rollData?.die2 > 0;
             return (
               <div style={{ marginBottom: '1rem' }}>
                 <RollCalculator
@@ -161,8 +162,8 @@ export default function SpireTrialPage() {
                   disabled={!canAdd}
                   onClick={() => {
                     if (!rollData) return;
-                    const outcomeText = { nat20: 'CRITICAL SUCCESS', nat1: 'CRITICAL FAILURE', success: 'SUCCESS', failure: 'FAILURE' }[rollData.outcome] || '';
-                    const summary = `${rollData.label}: rolled ${rollData.nat} +${rollData.totalMod} = ${rollData.total} vs DC ${rollData.dc} — ${outcomeText}`;
+                    const outcomeText = { crit_success: 'CRITICAL SUCCESS', crit_failure: 'CRITICAL FAILURE', success: 'SUCCESS', failure: 'FAILURE' }[rollData.outcome] || '';
+                    const summary = `${rollData.label}: rolled ${rollData.die1}+${rollData.die2} +${rollData.totalMod} = ${rollData.total} vs DC ${rollData.dc} — ${outcomeText}`;
                     setForm(p => ({ ...p, body: p.body ? p.body + '\n' + summary : summary }));
                   }}
                 >

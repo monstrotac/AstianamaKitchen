@@ -1,101 +1,153 @@
 import { useState, useCallback, useRef } from 'react';
-import { ATTR_MOD } from '../../utils/rollUtils';
+import { DC_OPTIONS, computeDamageTier } from '../../utils/rollUtils';
 
-const DC_OPTS = [
-  { v: 8,  l: 'Routine — DC 8' },
-  { v: 12, l: 'Somewhat Difficult — DC 12' },
-  { v: 15, l: 'Difficult — DC 15' },
-  { v: 18, l: 'Very Difficult — DC 18' },
-  { v: 22, l: 'Extremely Difficult — DC 22' },
-  { v: 25, l: 'Near Impossible — DC 25' },
-];
-
-function computeOutcome(nat, total, dc) {
-  if (nat === 20) return { text: 'CRITICAL SUCCESS', cls: 'n20' };
-  if (nat === 1)  return { text: 'CRITICAL FAILURE', cls: 'n1' };
-  if (total >= dc) return { text: 'SUCCESS', cls: 'ok' };
-  return { text: 'FAILURE', cls: 'no' };
+function computeOutcome(d1, d2, total, dc) {
+  if (d1 === 10 && d2 === 10) return { text: 'CRITICAL SUCCESS', cls: 'crit-success', margin: total - dc };
+  if (d1 === 1 && d2 === 1) return { text: 'CRITICAL FAILURE', cls: 'crit-failure' };
+  if (total >= dc) return { text: 'SUCCESS', cls: 'success', margin: total - dc };
+  return { text: 'FAILURE', cls: 'failure' };
 }
 
-export default function QuickRoll({ label, modifier, onClose }) {
-  const [dc, setDc]           = useState(12);
-  const [nat, setNat]         = useState(null);
+export default function QuickRoll({ label, modifier: defaultModifier, attributeOptions, isCombatRoll, onClose }) {
+  const hasAttrChoice = attributeOptions && attributeOptions.length > 1;
+  const [selectedAttrIdx, setSelectedAttrIdx] = useState(0);
+  const modifier = hasAttrChoice ? attributeOptions[selectedAttrIdx].modifier : defaultModifier;
+
+  const [dcSel, setDcSel] = useState(12);
+  const [customDC, setCustomDC] = useState('12');
+  const [die1, setDie1] = useState(null);
+  const [die2, setDie2] = useState(null);
   const [rolling, setRolling] = useState(false);
-  const [display, setDisplay] = useState('—');
+  const [display1, setDisplay1] = useState('\u2014');
+  const [display2, setDisplay2] = useState('\u2014');
   const ivRef = useRef(null);
 
-  const total   = nat != null ? nat + modifier : null;
-  const outcome = nat != null ? computeOutcome(nat, total, dc) : null;
+  const dc = dcSel === -1 ? parseInt(customDC) || 12 : dcSel;
+  const total = die1 != null && die2 != null ? die1 + die2 + modifier : null;
+  const outcome = die1 != null && die2 != null && total != null
+    ? computeOutcome(die1, die2, total, dc)
+    : null;
 
   const roll = useCallback(() => {
     if (rolling) return;
     setRolling(true);
-    setNat(null);
+    setDie1(null);
+    setDie2(null);
     let count = 0;
     ivRef.current = setInterval(() => {
-      setDisplay(Math.floor(Math.random() * 20) + 1);
+      setDisplay1(String(Math.floor(Math.random() * 10) + 1));
+      setDisplay2(String(Math.floor(Math.random() * 10) + 1));
       count++;
       if (count >= 18) {
         clearInterval(ivRef.current);
-        const result = Math.floor(Math.random() * 20) + 1;
-        setDisplay(result);
-        setNat(result);
+        const r1 = Math.floor(Math.random() * 10) + 1;
+        const r2 = Math.floor(Math.random() * 10) + 1;
+        setDisplay1(String(r1));
+        setDisplay2(String(r2));
+        setDie1(r1);
+        setDie2(r2);
         setRolling(false);
       }
     }, 55);
   }, [rolling]);
 
+  function getDieClassName(die, otherDie) {
+    if (rolling) return 's-die-rolling';
+    if (die === 10 && otherDie === 10) return 's-die-crit-success';
+    if (die === 1 && otherDie === 1) return 's-die-crit-failure';
+    if (die != null) return 's-die-normal';
+    return '';
+  }
+
   return (
-    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-      {/* Label + close */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-        <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '0.72rem', letterSpacing: '0.12em', color: 'var(--mono)' }}>
-          {label} — Mod: {modifier >= 0 ? `+${modifier}` : modifier}
-        </span>
-        <button className="s-btn small danger" onClick={onClose}>✕</button>
-      </div>
-
-      {/* DC selector + roll button */}
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <select className="s-select" value={dc} onChange={e => setDc(Number(e.target.value))}>
-          {DC_OPTS.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
-        </select>
-        <button className="s-btn" onClick={roll} disabled={rolling} style={{ minWidth: '100px' }}>
-          ◆ Roll
-        </button>
-      </div>
-
-      {/* Die display */}
-      <div style={{
-        fontFamily: 'Orbitron, monospace',
-        fontSize: '1.6rem',
-        color: rolling ? 'var(--dim)' : nat === 20 ? '#f0b832' : nat === 1 ? '#c55' : 'var(--bright-red)',
-        letterSpacing: '0.1em',
-        transition: 'color 0.2s',
-        flexShrink: 0,
-        minWidth: '2.5rem',
-        textAlign: 'center',
-      }}>
-        {display}
-      </div>
-
-      {/* Outcome */}
-      {outcome && (
-        <div style={{ flexShrink: 0 }}>
-          <div style={{
-            fontFamily: 'Orbitron, monospace',
-            fontSize: '0.72rem',
-            letterSpacing: '0.15em',
-            color: outcome.cls === 'n20' ? '#f0b832' : outcome.cls === 'ok' ? '#5c9' : '#c55',
-            marginBottom: '0.2rem',
-          }}>
-            {outcome.text}
-          </div>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: 'var(--dim)' }}>
-            {nat} + {modifier >= 0 ? `+${modifier}` : modifier} = {total} vs DC {dc}
-          </div>
+    <>
+      <div className="s-overlay" onClick={onClose} />
+      <div className="s-quick-roll-panel">
+        {/* Header */}
+        <div className="s-quick-roll-top">
+          <span className="s-quick-roll-label">{label}</span>
+          <button type="button" className="s-btn small" onClick={onClose}>{'\u2715'}</button>
         </div>
-      )}
-    </div>
+
+        {/* Attribute picker (versatile abilities) */}
+        {hasAttrChoice && (
+          <div className="s-attr-picker">
+            <div className="s-attr-picker-label">Choose attribute</div>
+            <div className="s-attr-picker-row">
+              {attributeOptions.map((opt, idx) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  className={`s-btn small${idx === selectedAttrIdx ? ' active' : ''}`}
+                  onClick={() => { setSelectedAttrIdx(idx); setDie1(null); setDie2(null); }}
+                >
+                  {opt.label} ({opt.modifier >= 0 ? `+${opt.modifier}` : opt.modifier})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Modifier */}
+        <div className="s-quick-roll-mod">{modifier >= 0 ? `+${modifier}` : modifier}</div>
+        <div style={{ textAlign: 'center', fontSize: '0.6rem', color: 'var(--dim)', marginBottom: '0.5rem' }}>Modifier</div>
+
+        {/* DC selector + Roll button */}
+        <div className="s-quick-roll-controls">
+          <div>
+            <span style={{ fontSize: '0.65rem', color: 'var(--dim)', display: 'block', marginBottom: '0.25rem' }}>
+              Select the task difficulty
+            </span>
+            <select className="s-input" value={dcSel} onChange={e => setDcSel(Number(e.target.value))}>
+              {DC_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            {dcSel === -1 && (
+              <input
+                type="number"
+                className="s-input"
+                style={{ width: '4rem', marginLeft: '0.5rem' }}
+                value={customDC}
+                min="1"
+                max="60"
+                onChange={e => setCustomDC(e.target.value)}
+              />
+            )}
+          </div>
+          <button type="button" className="s-btn" onClick={roll} disabled={rolling}>
+            {rolling ? '\u2026' : '\u25C6 Roll 2d10'}
+          </button>
+        </div>
+
+        {/* Result */}
+        {(die1 != null || rolling) && (
+          <div className="s-quick-roll-result">
+            <div className="s-die-display-row">
+              <div className={`s-die-display ${getDieClassName(die1, die2)}`}>{display1}</div>
+              <div className="s-die-plus">+</div>
+              <div className={`s-die-display ${getDieClassName(die2, die1)}`}>{display2}</div>
+            </div>
+            {outcome && total != null && (
+              <>
+                <div className={`s-outcome-text s-outcome-${outcome.cls}`}>{outcome.text}</div>
+                <div className="s-outcome-formula">
+                  {die1} + {die2} + {modifier >= 0 ? `(+${modifier})` : `(${modifier})`} = {total} vs DC {dc}
+                </div>
+                {outcome.margin != null && outcome.margin >= 0 && (
+                  <div className="s-outcome-margin">
+                    Margin: +{outcome.margin}
+                    {isCombatRoll && (() => {
+                      const tier = computeDamageTier(outcome.margin);
+                      return <span className="s-damage-tier"> {tier.label} ({tier.damage} dmg)</span>;
+                    })()}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

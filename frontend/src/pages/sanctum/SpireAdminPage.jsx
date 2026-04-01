@@ -17,18 +17,18 @@ const RANK_LABEL = { acolyte: 'Acolyte', apprentice: 'Apprentice', lord: 'Lord',
 
 // ── Create user form ──────────────────────────────────────────────────────────
 function CreateUserForm({ onCreated }) {
-  const [form, setForm] = useState({ email: '', password: '', codeName: '' });
+  const [form, setForm] = useState({ email: '', password: '', username: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   async function submit(e) {
     e.preventDefault();
-    if (!form.email || !form.password || !form.codeName) { setError('All fields required'); return; }
+    if (!form.email || !form.password || !form.username) { setError('All fields required'); return; }
     setSaving(true); setError('');
     try {
       const res = await client.post('/users', form);
       onCreated(res.data);
-      setForm({ email: '', password: '', codeName: '' });
+      setForm({ email: '', password: '', username: '' });
     } catch (err) {
       setError(err.response?.data?.error || 'Failed');
     } finally { setSaving(false); }
@@ -41,8 +41,8 @@ function CreateUserForm({ onCreated }) {
         <div className="s-two-col">
           <div className="s-form-row">
             <label className="s-label">Username</label>
-            <input className="s-input" value={form.codeName}
-              onChange={e => setForm(p => ({ ...p, codeName: e.target.value }))}
+            <input className="s-input" value={form.username}
+              onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
               placeholder="Login username…" required />
           </div>
           <div className="s-form-row">
@@ -68,7 +68,7 @@ function CreateUserForm({ onCreated }) {
 }
 
 // ── Pending guest row ─────────────────────────────────────────────────────────
-function GuestRow({ guest, onPromoted }) {
+function GuestRow({ guest, onPromoted, onDeleted }) {
   const [saving, setSaving] = useState(false);
 
   async function grantAccess() {
@@ -79,23 +79,38 @@ function GuestRow({ guest, onPromoted }) {
     } catch (e) {} finally { setSaving(false); }
   }
 
+  async function handleDelete() {
+    if (!window.confirm(`Permanently delete guest ${guest.username}?`)) return;
+    setSaving(true);
+    try {
+      await client.delete(`/users/${guest.id}`);
+      onDeleted(guest.id);
+    } catch (e) { alert(e.response?.data?.error || 'Delete failed.'); }
+    finally { setSaving(false); }
+  }
+
   return (
     <div className="s-admin-row">
       <div style={{ flex: 1 }}>
-        <div className="s-admin-name">{guest.codeName}</div>
+        <div className="s-admin-name">{guest.username}</div>
         <div className="s-admin-meta">
           {guest.email} — registered {new Date(guest.createdAt).toLocaleDateString()}
         </div>
       </div>
-      <button className="s-btn small" onClick={grantAccess} disabled={saving}>
-        {saving ? '…' : '◆ Grant Access'}
-      </button>
+      <div style={{ display: 'flex', gap: '0.4rem' }}>
+        <button className="s-btn small" onClick={grantAccess} disabled={saving}>
+          {saving ? '…' : '◆ Grant Access'}
+        </button>
+        <button className="s-btn small danger" onClick={handleDelete} disabled={saving}>
+          Delete
+        </button>
+      </div>
     </div>
   );
 }
 
 // ── Active operative row ──────────────────────────────────────────────────────
-function OperativeRow({ operative, onUpdate }) {
+function OperativeRow({ operative, onUpdate, onDeleted }) {
   const [expanded, setExpanded] = useState(false);
   const [spireChar, setSpireChar] = useState(null);
   const [spireSkills, setSpireSkills] = useState([]);
@@ -136,11 +151,21 @@ function OperativeRow({ operative, onUpdate }) {
   }
 
   async function resetPassword() {
-    const pw = prompt(`New passphrase for ${operative.codeName}:`);
+    const pw = prompt(`New passphrase for ${operative.username}:`);
     if (!pw) return;
     try {
       await client.patch(`/users/${operative.id}`, { password: pw });
     } catch (e) { alert('Failed.'); }
+  }
+
+  async function handleDelete() {
+    if (!window.confirm(`Permanently delete ${operative.username}? This will remove all their characters, stories, trials, and reports. This cannot be undone.`)) return;
+    setSaving(true);
+    try {
+      await client.delete(`/users/${operative.id}`);
+      onDeleted(operative.id);
+    } catch (e) { alert(e.response?.data?.error || 'Delete failed.'); }
+    finally { setSaving(false); }
   }
 
   // Faction comes from the character (shown once expanded, or from operative.faction via join)
@@ -152,7 +177,7 @@ function OperativeRow({ operative, onUpdate }) {
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ flex: 1 }}>
           <div className="s-admin-name">
-            {operative.codeName}
+            {operative.username}
             {!operative.isActive && (
               <span style={{ color: '#c55', fontSize: '0.62rem', marginLeft: '0.5rem', letterSpacing: '0.1em' }}>
                 DEACTIVATED
@@ -186,6 +211,9 @@ function OperativeRow({ operative, onUpdate }) {
             onClick={toggleActive} disabled={saving}
           >
             {operative.isActive ? 'Deactivate' : 'Reinstate'}
+          </button>
+          <button className="s-btn small danger" onClick={handleDelete} disabled={saving}>
+            Delete
           </button>
         </div>
       </div>
@@ -237,6 +265,9 @@ export default function SpireAdminPage() {
   function handleUpdate(updated) {
     setUsers(prev => prev.map(u => u.id === updated.id ? { ...u, ...updated } : u));
   }
+  function handleDeleted(id) {
+    setUsers(prev => prev.filter(u => u.id !== id));
+  }
 
   const guests     = users.filter(u => u.role === 'guest');
   const operatives = users.filter(u => u.role !== 'guest');
@@ -263,7 +294,7 @@ export default function SpireAdminPage() {
           <div style={{ fontSize: '0.68rem', color: 'var(--dim)', marginBottom: '1rem', fontFamily: 'Share Tech Mono, monospace' }}>
             These accounts have registered but have not been granted access. Grant access, then assign a faction via their character sheet.
           </div>
-          {guests.map(g => <GuestRow key={g.id} guest={g} onPromoted={handleUpdate} />)}
+          {guests.map(g => <GuestRow key={g.id} guest={g} onPromoted={handleUpdate} onDeleted={handleDeleted} />)}
         </div>
       )}
 
@@ -280,7 +311,7 @@ export default function SpireAdminPage() {
               }}>
                 {g.label}
               </div>
-              {g.members.map(o => <OperativeRow key={o.id} operative={o} onUpdate={handleUpdate} />)}
+              {g.members.map(o => <OperativeRow key={o.id} operative={o} onUpdate={handleUpdate} onDeleted={handleDeleted} />)}
             </div>
           ))
         }

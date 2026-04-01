@@ -1,50 +1,64 @@
 import { useState, useCallback } from 'react';
-import { SF, FF, N20, N1, pick } from '../data/flavorText';
+import { SF, FF, CRIT_SUCCESS, CRIT_FAILURE, pick } from '../data/flavorText';
+import { computeDamageTier } from '../utils/rollUtils';
 
 export function useRoller() {
-  const [rolling, setRolling]     = useState(false);
-  const [dieDisplay, setDieDisplay] = useState('—');
-  const [spinning, setSpinning]   = useState(false);
-  const [result, setResult]       = useState(null); // { nat, mod, total, dc, outcome, oc, oc2, pc, flavor, breakdown }
+  const [rolling, setRolling]           = useState(false);
+  const [die1Display, setDie1Display]   = useState('—');
+  const [die2Display, setDie2Display]   = useState('—');
+  const [spinning, setSpinning]         = useState(false);
+  const [result, setResult]             = useState(null);
 
-  const roll = useCallback((skillBonus, baseModifier, dc) => {
+  const roll = useCallback((modifier, dc, isCombatRoll = false) => {
     if (rolling) return;
     setRolling(true);
     setSpinning(true);
 
-    let count = 0, max = 22;
+    let count = 0;
+    const max = 18;
     const iv = setInterval(() => {
-      setDieDisplay(Math.floor(Math.random() * 20) + 1);
+      setDie1Display(Math.floor(Math.random() * 10) + 1);
+      setDie2Display(Math.floor(Math.random() * 10) + 1);
       count++;
       if (count >= max) {
         clearInterval(iv);
-        const nat = Math.floor(Math.random() * 20) + 1;
-        const mod = skillBonus + baseModifier;
-        const tot = nat + mod;
-        setDieDisplay(nat);
+        const d1 = Math.floor(Math.random() * 10) + 1;
+        const d2 = Math.floor(Math.random() * 10) + 1;
+        const total = d1 + d2 + modifier;
+        setDie1Display(d1);
+        setDie2Display(d2);
         setSpinning(false);
 
-        let oc, oc2, pc, flavor;
-        if (nat === 20) {
-          oc = 'CRITICAL SUCCESS — THE BLADE SINGS'; oc2 = 'n20'; pc = 'n20'; flavor = pick(N20);
-        } else if (nat === 1) {
-          oc = 'CRITICAL FAILURE — THE THORN TURNS'; oc2 = 'n1'; pc = 'no'; flavor = pick(N1);
-        } else if (tot >= dc) {
-          oc = 'SUCCESS — THE HARVEST IS TAKEN'; oc2 = 'ok'; pc = 'ok'; flavor = pick(SF);
+        let oc, oc2, flavor, outcome, margin = null, damageTier = null;
+
+        if (d1 === 10 && d2 === 10) {
+          oc = 'CRITICAL SUCCESS'; oc2 = 'crit_success'; outcome = 'crit_success';
+          flavor = pick(CRIT_SUCCESS);
+          margin = total - dc;
+          damageTier = { label: 'Devastating', damage: 4 }; // crits bypass armor, always 4
+        } else if (d1 === 1 && d2 === 1) {
+          oc = 'CRITICAL FAILURE'; oc2 = 'crit_failure'; outcome = 'crit_failure';
+          flavor = pick(CRIT_FAILURE);
+        } else if (total >= dc) {
+          oc = 'SUCCESS'; oc2 = 'ok'; outcome = 'success';
+          flavor = pick(SF);
+          margin = total - dc;
+          if (isCombatRoll) damageTier = computeDamageTier(margin);
         } else {
-          oc = 'FAILURE — THE GARDEN HOLDS'; oc2 = 'no'; pc = 'no'; flavor = pick(FF);
+          oc = 'FAILURE'; oc2 = 'no'; outcome = 'failure';
+          flavor = pick(FF);
         }
 
         setResult({
-          nat, mod, tot, dc,
-          outcome: oc2 === 'nat20' || oc2 === 'n20' ? 'nat20' : oc2 === 'n1' ? 'nat1' : pc === 'ok' ? 'success' : 'failure',
-          oc, oc2, pc, flavor,
-          breakdown: `Natural: ${nat}  +  Modifier: +${mod}  =  Total: ${tot}  vs  DC ${dc}`
+          die1: d1, die2: d2, modifier, total, dc,
+          outcome, oc, oc2, flavor,
+          margin, damageTier,
+          breakdown: `Die 1: ${d1}  +  Die 2: ${d2}  +  Modifier: +${modifier}  =  Total: ${total}  vs  DC ${dc}`,
         });
         setRolling(false);
       }
     }, 55);
   }, [rolling]);
 
-  return { rolling, dieDisplay, spinning, result, roll };
+  return { rolling, die1Display, die2Display, spinning, result, roll };
 }

@@ -77,6 +77,23 @@
   gap: 1rem;
 }
 
+.s-hamburger {
+  display: none;
+  background: none;
+  border: 1px solid var(--border-sub);
+  color: var(--dim);
+  font-size: 1.4rem;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+  font-family: 'Orbitron', monospace;
+  line-height: 1;
+  transition: border-color 0.2s, color 0.2s;
+}
+.s-hamburger:hover {
+  border-color: var(--bright-red);
+  color: var(--bright-red);
+}
+
 .s-user-display {
   color: var(--mono);
   font-size: 0.82rem;
@@ -299,7 +316,7 @@
   gap: 0.6rem;
   margin-bottom: 1.25rem;
 }
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .s-attr-grid { grid-template-columns: repeat(4, 1fr); }
 }
 @media (max-width: 480px) {
@@ -308,7 +325,7 @@
 
 .s-attr-cell {
   background: rgba(0,0,0,0.3);
-  border: 1px solid var(--border-sub);
+  border: 1px solid var(--border);
   padding: 0.7rem 0.35rem 0.55rem;
   text-align: center;
   transition: border-color 0.2s, background 0.2s;
@@ -406,6 +423,9 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.6rem;
 }
+@media (max-width: 480px) {
+  .s-force-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* ── XP / Budget Display ─────────────────────────────────────────────────── */
 
@@ -421,6 +441,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+@media (max-width: 480px) {
+  .s-point-budget { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem 0.75rem; }
 }
 
 .s-xp-display {
@@ -468,6 +491,8 @@
 }
 .s-skill-row:last-child { border-bottom: none; }
 .s-skill-row.s-skill-row-open { background: rgba(0,0,0,0.12); }
+.s-skill-row.s-skill-row-expandable { cursor: pointer; }
+.s-skill-row.s-skill-row-expandable:hover { background: rgba(255,255,255,0.03); }
 .s-skill-row.s-skill-unlearned { opacity: 0.38; }
 .s-skill-row.s-skill-unlearned:hover { opacity: 0.65; }
 
@@ -499,12 +524,19 @@
   font-weight: 600;
   flex-shrink: 0;
 }
+/* Physical */
 .s-skill-attr-tag[data-attr="str"]       { background: rgba(180,60,60,0.25);  color: #ee9090; }
 .s-skill-attr-tag[data-attr="dex"]       { background: rgba(60,180,60,0.25);  color: #90ee90; }
-.s-skill-attr-tag[data-attr="con"]       { background: rgba(180,100,60,0.25); color: #eebb90; }
-.s-skill-attr-tag[data-attr="int_score"] { background: rgba(60,100,180,0.25); color: #90aaf0; }
-.s-skill-attr-tag[data-attr="wis"]       { background: rgba(140,60,180,0.25); color: #cc90f0; }
+.s-skill-attr-tag[data-attr="sta"]       { background: rgba(180,100,60,0.25); color: #eebb90; }
+/* Social */
 .s-skill-attr-tag[data-attr="cha"]       { background: rgba(180,60,140,0.25); color: #f090cc; }
+.s-skill-attr-tag[data-attr="man"]       { background: rgba(160,80,160,0.25); color: #d090e0; }
+.s-skill-attr-tag[data-attr="app"]       { background: rgba(180,60,100,0.25); color: #f090a8; }
+/* Mental */
+.s-skill-attr-tag[data-attr="per"]       { background: rgba(140,60,180,0.25); color: #cc90f0; }
+.s-skill-attr-tag[data-attr="int_score"] { background: rgba(60,100,180,0.25); color: #90aaf0; }
+.s-skill-attr-tag[data-attr="wit"]       { background: rgba(60,160,160,0.25); color: #90ddd0; }
+/* Force */
 .s-skill-attr-tag[data-attr="frc"]       { background: rgba(200,150,12,0.25); color: #f0c040; }
 
 /* ── Image Upload ────────────────────────────────────────────────────────── */
@@ -636,11 +668,26 @@
 }
 
 .s-entry-roll-data {
-  font-size: 0.84rem;
-  color: #5c9;
+  font-size: 0.78rem;
+  color: var(--text);
   margin-top: 0.4rem;
   font-family: 'Share Tech Mono', monospace;
+  padding: 8px 12px;
+  border-left: 2px solid var(--border);
+  background: var(--card-bg);
 }
+.s-entry-roll-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  color: var(--crimson);
+  text-transform: uppercase;
+}
+.s-entry-roll-outcome.success      { color: #5aaa66; }
+.s-entry-roll-outcome.failure      { color: #c05050; }
+.s-entry-roll-outcome.crit_success { color: #ffd700; }
+.s-entry-roll-outcome.crit_failure { color: #ff3333; }
+.s-entry-roll-damage { color: var(--mono); }
 
 /* ── Events ──────────────────────────────────────────────────────────────── */
 
@@ -718,8 +765,8 @@
   color: var(--text);
   padding: 0.6rem 1rem;
   font-size: 0.9rem;
-  flex: 1;
-  min-width: 200px;
+  flex: 1 1 200px;
+  min-width: 0;
   font-family: inherit;
   transition: border-color 0.2s;
 }
@@ -842,8 +889,13 @@
   margin-bottom: 2rem;
   align-items: flex-start;
 }
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .s-sheet-header { gap: 1.25rem; }
+  .s-sheet-portrait { width: 160px; min-width: 160px; height: 160px; }
+}
+@media (max-width: 480px) {
   .s-sheet-header { flex-direction: column; }
+  .s-sheet-portrait { width: 100%; min-width: unset; height: auto; aspect-ratio: 1; max-width: 200px; margin: 0 auto; }
 }
 
 .s-sheet-portrait {
@@ -1079,7 +1131,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
 }
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .s-two-col { grid-template-columns: 1fr; gap: 1.5rem; }
 }
 
@@ -1130,31 +1182,31 @@
 
 /* ── D&D-style character sheet two-column layout ─────────────────────────── */
 
+.s-sheet-container {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  position: relative;
+}
+.s-sheet-container::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--crimson), transparent);
+}
+
 .s-sheet-body {
-  display: grid;
-  grid-template-columns: minmax(260px, 300px) 1fr;
-  gap: 1.5rem;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
   min-width: 0;
 }
-@media (max-width: 900px) {
-  .s-sheet-body { grid-template-columns: 1fr; }
-}
 
-.s-sheet-left {
-  position: sticky;
-  top: 80px;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.s-sheet-body > div {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.s-sheet-body.editing {
-  grid-template-columns: 1fr;
+.s-sheet-card {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border-sub);
+  padding: 1.25rem;
 }
 
 .s-edit-panel {
@@ -1247,7 +1299,7 @@
 
 .s-story-card-v2 {
   border: 1px solid var(--border-sub);
-  padding: 1.25rem 1.5rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
   margin-bottom: 0.75rem;
 }
 
@@ -1774,9 +1826,9 @@
   background: none;
   border: none;
   color: var(--dim);
-  font-size: 0.55rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  padding: 0.1rem 0.25rem;
+  padding: 0.15rem 0.35rem;
   line-height: 1;
   transition: color 0.15s;
   display: block;
@@ -1807,6 +1859,73 @@
   text-transform: uppercase;
   color: var(--mono);
   margin-bottom: 0.35rem;
+}
+
+/* ── Rank flavor text (attributes + skills) ────────────────────────────── */
+
+.s-rank-flavor {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  background: rgba(200,150,12,0.06);
+  border-left: 2px solid var(--bright-red);
+}
+.s-rank-flavor-label {
+  display: block;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--bright-red);
+  margin-bottom: 0.2rem;
+}
+.s-rank-flavor-desc {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--mono);
+  line-height: 1.5;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* ── Attribute rank label (below score) ────────────────────────────────── */
+
+.s-attr-rank-label {
+  font-size: 0.55rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+  margin-top: 0.15rem;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* ── Clickable dot selector (skill edit mode) ──────────────────────────── */
+
+.s-skill-edit-dots {
+  display: flex;
+  gap: 0.15rem;
+  align-items: center;
+  margin-left: auto;
+}
+.s-skill-edit-dot {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.12rem;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s;
+}
+.s-skill-edit-dot.filled {
+  color: var(--bright-red);
+}
+.s-skill-edit-dot.empty {
+  color: var(--dim);
+}
+.s-skill-edit-dot:hover {
+  color: var(--mono);
+  transform: scale(1.2);
+}
+.s-skill-edit-dot:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
 }
 
 /* ── Health tag ──────────────────────────────────────────────────────────── */
@@ -2118,24 +2237,17 @@
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .s-profile-stats-grid { grid-template-columns: 1fr; }
+  .s-profile-personal-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
   .s-profile-header {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
-
-  .s-profile-stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .s-profile-personal-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .s-roster-card {
-    flex-wrap: wrap;
-  }
+  .s-roster-card { flex-wrap: wrap; }
 }
 
 /* ── Skill detail / expanded view ───────────────────────────────────────── */
@@ -2547,17 +2659,24 @@
   border: 1px solid currentColor;
 }
 
-.rc-outcome.nat20 {
+.rc-outcome.crit-success {
   color: #ffd700;
   border-color: #ffd700;
   background: rgba(255,215,0,0.08);
   text-shadow: 0 0 8px rgba(255,215,0,0.4);
 }
 
-.rc-outcome.nat1 {
+.rc-outcome.crit-failure {
   color: #c00;
   border-color: #c00;
   background: rgba(200,0,0,0.08);
+}
+
+.rc-damage-tier {
+  display: block;
+  font-size: 0.68rem;
+  color: #f0b832;
+  margin-top: 0.25rem;
 }
 
 .rc-outcome.success {
@@ -2911,3 +3030,631 @@
 
 .draft-badge.draft { color: var(--dim); border-color: var(--dim); }
 .draft-badge.published { color: #5c9; border-color: #5c9; }
+
+/* ── Attribute Block (9 attributes, 3×3 category grid) ──────────────────── */
+
+.s-attr-category { margin-bottom: 1rem; }
+.s-attr-category-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.35rem;
+  padding-left: 0.1rem;
+}
+.s-attr-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.s-attr-full-name {
+  font-size: 0.55rem;
+  color: var(--dim);
+  margin-bottom: 0.2rem;
+}
+.s-attr-cell-clickable { cursor: pointer; }
+.s-attr-cell-clickable:hover {
+  border-color: var(--border);
+  background: rgba(200,150,12,0.08);
+}
+
+/* ── QuickRoll Panel (2d10 modal) ────────────────────────────────────────── */
+
+.s-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 900;
+}
+.s-quick-roll-panel {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 901;
+  background: var(--bg-panel, #1a1a1f);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  min-width: 320px;
+  max-width: 400px;
+}
+.s-quick-roll-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.s-quick-roll-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: var(--mono);
+}
+.s-quick-roll-mod {
+  text-align: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.8rem;
+  color: var(--mono);
+  line-height: 1;
+  margin-bottom: 0.15rem;
+}
+.s-quick-roll-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.s-quick-roll-result {
+  text-align: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-sub);
+}
+
+/* Attribute picker (versatile) */
+.s-attr-picker { margin-bottom: 0.75rem; }
+.s-attr-picker-label {
+  font-size: 0.6rem;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.3rem;
+}
+.s-attr-picker-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+/* Die display */
+.s-die-display-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.s-die-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 2rem;
+  min-width: 2.5rem;
+  text-align: center;
+  color: var(--mono);
+  transition: color 0.2s;
+}
+.s-die-plus {
+  font-size: 1.2rem;
+  color: var(--dim);
+}
+.s-die-rolling { color: var(--dim); }
+.s-die-normal { color: var(--bright-red); }
+.s-die-crit-success { color: #f0b832; }
+.s-die-crit-failure { color: #c55; }
+
+/* Outcome */
+.s-outcome-text {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.3rem;
+}
+.s-outcome-success { color: #5c9; }
+.s-outcome-failure { color: #c55; }
+.s-outcome-crit-success { color: #f0b832; }
+.s-outcome-crit-failure { color: #c55; }
+.s-outcome-formula {
+  font-family: monospace;
+  font-size: 0.68rem;
+  color: var(--dim);
+}
+.s-outcome-margin {
+  font-size: 0.72rem;
+  color: var(--mono);
+  margin-top: 0.3rem;
+}
+.s-damage-tier {
+  color: #f0b832;
+  font-weight: bold;
+}
+
+/* ── Combat Panel ────────────────────────────────────────────────────────── */
+
+.s-combat-armor-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-sub);
+  margin-bottom: 0.75rem;
+}
+.s-combat-armor-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+
+/* ── Armor Picker (edit mode) ──────────────────────────────────────────── */
+.s-armor-picker {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.s-armor-option {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-sub);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+  min-width: 5.5rem;
+}
+.s-armor-option:hover {
+  border-color: var(--border);
+  background: rgba(255,255,255,0.04);
+}
+.s-armor-option.active {
+  border-color: var(--crimson);
+  background: rgba(200,150,12,0.1);
+}
+.s-armor-option-name {
+  display: block;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--mono);
+  margin-bottom: 0.2rem;
+}
+.s-armor-option.active .s-armor-option-name {
+  color: var(--bright-red);
+}
+.s-armor-option-detail {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.s-combat-panel { margin-bottom: 0.75rem; }
+.s-combat-section { margin-bottom: 0.75rem; }
+.s-combat-section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.3rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--border-sub);
+}
+.s-combat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0;
+  font-size: 0.72rem;
+}
+.s-combat-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.s-combat-bonus {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  color: var(--mono);
+  min-width: 2.5rem;
+}
+.s-combat-name {
+  color: var(--mono);
+  font-size: 0.72rem;
+}
+.s-penalty-note { color: #c55; font-size: 0.65rem; }
+.s-combat-attr {
+  font-size: 0.6rem;
+  color: var(--dim);
+}
+.s-combat-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.s-dc-badge {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  color: var(--dim);
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--border-sub);
+}
+.s-derived-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+}
+.s-derived-stat-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  text-transform: uppercase;
+}
+.s-derived-stat-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  color: var(--mono);
+}
+.s-derived-stat-breakdown {
+  font-size: 0.6rem;
+  color: var(--dim);
+}
+
+/* ── Force Panel ─────────────────────────────────────────────────────────── */
+
+.s-force-panel { margin-bottom: 1rem; }
+.s-force-top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.s-force-stat-cell {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-sub);
+  padding: 0.6rem 0.35rem;
+  text-align: center;
+}
+.s-force-stat-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.2rem;
+}
+.s-force-stat-score {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.2rem;
+  color: var(--mono);
+  line-height: 1;
+}
+.s-force-stat-sub {
+  font-size: 0.5rem;
+  color: var(--dim);
+  margin-top: 0.15rem;
+}
+.s-force-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+.s-force-section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.35rem;
+}
+.s-force-discipline-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.s-force-discipline-cell {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-sub);
+  padding: 0.6rem 0.35rem;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+.s-force-discipline-clickable { cursor: pointer; }
+.s-force-discipline-clickable:hover {
+  border-color: var(--border);
+  background: rgba(200,150,12,0.08);
+}
+.s-force-discipline-name {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--mono);
+  margin-bottom: 0.2rem;
+}
+.s-force-discipline-score {
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  color: var(--mono);
+}
+.s-force-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 0.3rem;
+}
+.s-force-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--dim);
+  background: transparent;
+}
+.s-force-dot-filled {
+  background: var(--mono);
+  border-color: var(--mono);
+}
+.s-force-roll-hint {
+  font-size: 0.5rem;
+  color: var(--dim);
+  margin-top: 0.2rem;
+}
+
+/* ── Combat Rules Modal ──────────────────────────────────────────────────── */
+
+.s-rules-panel {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 901;
+  background: var(--bg-panel, #1a1a1f);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  max-width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+  width: 92vw;
+}
+.s-rules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border-sub);
+}
+.s-rules-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  color: var(--mono);
+}
+.s-rules-content { font-size: 0.88rem; color: var(--mono); line-height: 1.6; }
+.s-rules-section { margin-bottom: 1.25rem; }
+.s-rules-heading {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.s-rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+.s-rules-table th,
+.s-rules-table td {
+  padding: 0.35rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-sub);
+}
+.s-rules-table th {
+  color: var(--dim);
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.s-rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0;
+}
+.s-rules-list li {
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ── Section title with help button ───────────────────────────────────── */
+
+.s-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.s-section-title-row .s-section-title {
+  margin-bottom: 0;
+}
+.s-rules-help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  border: 1px solid var(--border-sub);
+  background: transparent;
+  color: var(--dim);
+  font-size: 0.65rem;
+  font-family: 'Orbitron', monospace;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+.s-rules-help-btn:hover {
+  border-color: var(--border);
+  color: var(--mono);
+  background: rgba(255,255,255,0.05);
+}
+
+/* ── Guest Banner ────────────────────────────────────────────────────────── */
+
+.s-guest-banner {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-sub);
+}
+.s-guest-banner-text {
+  font-size: 0.72rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+/* ── Draft 2-column grid (report/trial edit) ─────────────────────────────── */
+
+.draft-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Nav bar wrapper (contains hamburger + tabs) ─────────────────────────── */
+
+.s-nav-bar {
+  position: relative;
+}
+
+/* ── Mobile Responsive ───────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Header right — wrap naturally instead of overflowing */
+  .s-header-right { flex-wrap: wrap; gap: 0.5rem; }
+  .s-header-top { flex-wrap: wrap; gap: 0.75rem; }
+  .s-title { font-size: 0.85rem; letter-spacing: 0.25em; }
+  .s-subtitle { font-size: 0.58rem; display: none; }
+
+  /* Hamburger — controls the tab nav */
+  .s-hamburger { display: block; }
+
+  /* Header nav tabs — hidden by default, shown as vertical dropdown */
+  .s-nav-bar .s-tabs {
+    display: none;
+    flex-direction: column;
+    padding: 0;
+    border-top: none;
+    overflow: visible;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  .s-nav-bar .s-tabs.open {
+    display: flex;
+  }
+  .s-nav-bar .s-tab {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.68rem;
+    border-bottom: none;
+    border-left: 2px solid transparent;
+    text-align: left;
+  }
+  .s-nav-bar .s-tab.active {
+    border-bottom: none;
+    border-left-color: var(--bright-red);
+    background: rgba(0,0,0,0.2);
+  }
+
+  /* Page-level tabs (character page, etc.) — horizontal scroll */
+  .s-tabs {
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .s-tabs::-webkit-scrollbar { display: none; }
+  .s-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.65rem 1rem;
+    font-size: 0.66rem;
+  }
+
+  /* Nav bar layout */
+  .s-nav-bar {
+    border-top: 1px solid var(--border-sub);
+    padding: 0;
+  }
+
+  /* Admin rows */
+  .s-admin-row { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Hero */
+  .s-hero { padding: 2.5rem 0.75rem 2rem; }
+  .s-hero-link { padding: 0.55rem 1.2rem; font-size: 0.65rem; }
+
+  /* Feed items — stack header on mobile */
+  .s-feed-item-header { flex-direction: column; align-items: flex-start; gap: 0.4rem; padding: 0.6rem 0.75rem; }
+  .s-feed-title { font-size: 0.82rem; }
+
+  /* Holopad report cards — stack header */
+  .s-holopad-header { flex-direction: column; gap: 0.5rem; padding: 0.75rem 0.85rem; }
+  .s-holopad-header-right { align-items: flex-start; flex-shrink: 1; }
+  .s-holopad-subject { font-size: 0.72rem; }
+  .s-holopad-title { font-size: 0.82rem; }
+
+  /* Character grid — ensure 2 columns max */
+  .s-char-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+
+  /* Force grids */
+  .s-force-top-row { grid-template-columns: repeat(2, 1fr); }
+  .s-force-discipline-row { grid-template-columns: repeat(2, 1fr); }
+  .s-attr-grid-3 { grid-template-columns: repeat(2, 1fr); }
+
+  /* Profile edit grid */
+  .s-profile-edit-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  /* Layout */
+  .s-container { padding: 0 0.75rem; }
+  .s-main { padding: 1.5rem 0 3rem; }
+
+  /* Header */
+  .s-title { font-size: 0.72rem; letter-spacing: 0.2em; }
+  .s-header-top { padding: 0.75rem; }
+  .s-header-right { gap: 0.35rem; }
+  .s-login-btn { padding: 0.3rem 0.6rem; font-size: 0.62rem; }
+  .s-user-display { font-size: 0.68rem; }
+  .mode-switch { font-size: 0.6rem; padding: 0.3rem 0.6rem; }
+
+  /* Draft form grid */
+  .draft-2col { grid-template-columns: 1fr; }
+
+  /* Textareas */
+  .s-textarea-report { min-height: 180px; }
+
+  /* Hero */
+  .s-hero { padding: 1.75rem 0.5rem 1.5rem; }
+  .s-hero-sub { font-size: 0.68rem; letter-spacing: 0.15em; }
+  .s-hero-link { padding: 0.5rem 0.9rem; font-size: 0.6rem; }
+  .s-hero-links { gap: 0.5rem; }
+
+  /* Section titles */
+  .s-section-title { font-size: 0.62rem; }
+
+  /* Character grid — single column */
+  .s-char-grid { grid-template-columns: 1fr; }
+
+  /* Footer */
+  .s-footer { font-size: 0.65rem; padding: 1rem 0; }
+}

@@ -54,7 +54,7 @@ export default function TrialEditPage() {
         setAssignedTo(t.assigned_to || '');
         setCreatorId(t.creator_character_id || null);
         if (t.creator_character_id && t.creator_name) {
-          setCreatorChar({ id: t.creator_character_id, character_name: t.creator_name, image_url: t.creator_image_url, code_name: '' });
+          setCreatorChar({ id: t.creator_character_id, character_name: t.creator_name, image_url: t.creator_image_url, username: '' });
         }
         if (t.assigned_to) {
           const c = chars.find(ch => ch.user_id === t.assigned_to);
@@ -147,7 +147,7 @@ export default function TrialEditPage() {
         </div>
 
         {/* Status + Visibility */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="draft-2col">
           <div className="draft-field">
             <div className="draft-field-label">Status</div>
             <select className="draft-select" value={status} onChange={e => setStatus(e.target.value)}>
@@ -197,7 +197,7 @@ export default function TrialEditPage() {
           <div className="draft-field-label">Description</div>
           <textarea
             className="s-textarea-report"
-            style={{ minHeight: 280, width: '100%', boxSizing: 'border-box' }}
+            style={{ minHeight: 'clamp(180px, 35vh, 280px)', width: '100%', boxSizing: 'border-box' }}
             placeholder="Describe the trial objectives, conditions, and lore…"
             value={description}
             onChange={e => setDescription(e.target.value)}

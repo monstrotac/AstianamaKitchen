@@ -24,7 +24,7 @@ export default function GardenLayout() {
       <div className="container">
         <div style={{ position: 'relative' }}>
           <Header />
-          <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+          <div className="garden-mode-switch-wrap">
             <ModeSwitch mode="garden" />
           </div>
         </div>

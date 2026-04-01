@@ -10,8 +10,8 @@ import { getCharacter, getSkills } from '../../api/sanctum';
 import RollCalculator from './RollCalculator';
 
 const OUTCOME_LABELS = {
-  nat20: 'CRITICAL SUCCESS',
-  nat1:  'CRITICAL FAILURE',
+  crit_success: 'CRITICAL SUCCESS',
+  crit_failure: 'CRITICAL FAILURE',
   success: 'SUCCESS',
   failure: 'FAILURE',
 };
@@ -23,7 +23,6 @@ export default function RollPanel({ charId, onInsert }) {
   const [rollData, setRollData] = useState(null);
   const loaded = useRef(false);
 
-  // Reset when charId changes
   useEffect(() => {
     loaded.current = false;
     setAttrs(null);
@@ -31,19 +30,21 @@ export default function RollPanel({ charId, onInsert }) {
     setRollData(null);
   }, [charId]);
 
-  // Lazy-load character data when panel is first opened
   useEffect(() => {
     if (!open || !charId || loaded.current) return;
     loaded.current = true;
     Promise.all([getCharacter(charId), getSkills(charId)])
       .then(([c, s]) => {
         setAttrs({
-          str:       c.str       ?? 1,
-          dex:       c.dex       ?? 1,
-          con:       c.con       ?? 1,
-          int_score: c.int_score ?? 1,
-          wis:       c.wis       ?? 1,
-          cha:       c.cha       ?? 1,
+          str:       c.str       ?? 0,
+          dex:       c.dex       ?? 0,
+          sta:       c.sta       ?? 0,
+          cha:       c.cha       ?? 0,
+          man:       c.man       ?? 0,
+          app:       c.app       ?? 0,
+          per:       c.per       ?? 0,
+          int_score: c.int_score ?? 0,
+          wit:       c.wit       ?? 0,
         });
         setSkills(s);
       })
@@ -53,10 +54,10 @@ export default function RollPanel({ charId, onInsert }) {
   if (!charId) return null;
 
   function handleInsert() {
-    if (!rollData?.nat) return;
+    if (!rollData?.die1 || !rollData?.die2) return;
     const outcome = OUTCOME_LABELS[rollData.outcome] || '';
-    const sign     = rollData.totalMod >= 0 ? '+' : '';
-    const text = `[ROLL] ${rollData.label}: ${rollData.nat} ${sign}${rollData.totalMod} = ${rollData.total} vs DC ${rollData.dc} — ${outcome}`;
+    const sign = rollData.totalMod >= 0 ? '+' : '';
+    const text = `[ROLL] ${rollData.label}: ${rollData.die1}+${rollData.die2} ${sign}${rollData.totalMod} = ${rollData.total} vs DC ${rollData.dc} — ${outcome}`;
     onInsert?.(text);
   }
 
@@ -68,7 +69,7 @@ export default function RollPanel({ charId, onInsert }) {
         style={{ fontSize: '0.72rem', padding: '3px 8px' }}
         onClick={() => setOpen(p => !p)}
       >
-        {open ? '▲ Hide rolls' : '◆ Roll dice'}
+        {open ? '\u25B2 Hide rolls' : '\u25C6 Roll dice'}
       </button>
 
       {open && (
@@ -80,7 +81,7 @@ export default function RollPanel({ charId, onInsert }) {
           background: 'rgba(255,255,255,0.02)',
         }}>
           {!attrs ? (
-            <div style={{ color: 'var(--dim)', fontSize: '0.75rem' }}>Loading character…</div>
+            <div style={{ color: 'var(--dim)', fontSize: '0.75rem' }}>Loading character\u2026</div>
           ) : (
             <>
               <RollCalculator attrs={attrs} skills={skills} onChange={setRollData} compact />
@@ -88,10 +89,10 @@ export default function RollPanel({ charId, onInsert }) {
                 type="button"
                 className="s-btn small"
                 style={{ marginTop: '0.5rem' }}
-                disabled={!rollData?.nat}
+                disabled={!rollData?.die1 || !rollData?.die2}
                 onClick={handleInsert}
               >
-                ◆ Insert Roll
+                \u25C6 Insert Roll
               </button>
             </>
           )}

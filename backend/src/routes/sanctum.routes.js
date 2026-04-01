@@ -4,10 +4,12 @@ const multer   = require('multer');
 
 const auth         = require('../middleware/auth');
 const optionalAuth = require('../middleware/optionalAuth');
+const rejectGuest  = require('../middleware/rejectGuest');
 
 const {
   listCharacters, listMyCharacters, listCharactersForUser, getCharacter,
   createCharacter, updateCharacter, uploadImage, setActiveCharacter,
+  getCombatAbilities,
   listSkills, upsertSkills, deleteSkill,
   getDescriptions,
   listTrials, createTrial, getTrial, updateTrialStatus, deleteTrial,
@@ -44,20 +46,24 @@ const upload = multer({
 router.get('/characters',              optionalAuth, listCharacters);
 router.get('/characters/mine',         auth,         listMyCharacters);
 router.get('/characters/for-user/:userId', auth,    listCharactersForUser);
-router.post('/characters',             auth,         createCharacter);
+router.post('/characters',             auth, rejectGuest, createCharacter);
 router.get('/characters/:charId',      optionalAuth, getCharacter);
-router.patch('/characters/:charId',    auth,         updateCharacter);
-router.post('/characters/:charId/image', auth, upload.single('image'), uploadImage);
+router.patch('/characters/:charId',    auth, rejectGuest, updateCharacter);
+router.post('/characters/:charId/image', auth, rejectGuest, upload.single('image'), uploadImage);
+
+// ── Combat Ability Definitions ────────────────────────────────────────────────
+
+router.get('/combat-abilities', getCombatAbilities);
 
 // ── Active character ──────────────────────────────────────────────────────────
 
-router.put('/active-character', auth, setActiveCharacter);
+router.put('/active-character', auth, rejectGuest, setActiveCharacter);
 
 // ── Skills ────────────────────────────────────────────────────────────────────
 
 router.get('/characters/:charId/skills',                optionalAuth, listSkills);
-router.put('/characters/:charId/skills',                auth,         upsertSkills);
-router.delete('/characters/:charId/skills/:skillName',  auth,         deleteSkill);
+router.put('/characters/:charId/skills',                auth, rejectGuest, upsertSkills);
+router.delete('/characters/:charId/skills/:skillName',  auth, rejectGuest, deleteSkill);
 
 // ── Descriptions ──────────────────────────────────────────────────────────────
 
@@ -66,21 +72,21 @@ router.get('/descriptions', getDescriptions);
 // ── Trials ────────────────────────────────────────────────────────────────────
 
 router.get('/trials',       optionalAuth,                           listTrials);
-router.post('/trials',      auth,                                   createTrial);
+router.post('/trials',      auth, rejectGuest,                      createTrial);
 router.get('/trials/:id',   optionalAuth,                           getTrial);
-router.patch('/trials/:id',  auth,                                   updateTrialStatus);
-router.delete('/trials/:id', auth,                                   deleteTrial);
+router.patch('/trials/:id',  auth, rejectGuest,                      updateTrialStatus);
+router.delete('/trials/:id', auth, rejectGuest,                      deleteTrial);
 
 // ── Trial Entries ──────────────────────────────────────────────────────────────
 
 router.get('/trials/:id/entries',  optionalAuth, listEntries);
-router.post('/trials/:id/entries', auth,         addEntry);
+router.post('/trials/:id/entries', auth, rejectGuest, addEntry);
 
 // ── Events ────────────────────────────────────────────────────────────────────
 
 router.get('/events',        optionalAuth, listEvents);
-router.post('/events',       auth,         createEvent);
-router.delete('/events/:id', auth,         deleteEvent);
+router.post('/events',       auth, rejectGuest, createEvent);
+router.delete('/events/:id', auth, rejectGuest, deleteEvent);
 
 // ── Activity Feed ─────────────────────────────────────────────────────────
 
@@ -91,16 +97,16 @@ router.get('/feed', optionalAuth, getActivityFeed);
 router.get('/stories/recent',                                optionalAuth, listRecentStories);
 router.get('/characters/:charId/stories',                    optionalAuth, listStories);
 router.get('/characters/:charId/stories/:storyId',           optionalAuth, getStory);
-router.post('/characters/:charId/stories',                   auth,         createStory);
-router.patch('/characters/:charId/stories/:storyId',         auth,         updateStory);
-router.delete('/characters/:charId/stories/:storyId',        auth,         deleteStory);
+router.post('/characters/:charId/stories',                   auth, rejectGuest, createStory);
+router.patch('/characters/:charId/stories/:storyId',         auth, rejectGuest, updateStory);
+router.delete('/characters/:charId/stories/:storyId',        auth, rejectGuest, deleteStory);
 
 // ── Reports ────────────────────────────────────────────────────────────────
 
 router.get('/reports',        optionalAuth, listReports);
 router.get('/reports/:id',    optionalAuth, getReport);
-router.post('/reports',       auth,         createReport);
-router.patch('/reports/:id',  auth,         updateReport);
-router.delete('/reports/:id', auth,         deleteReport);
+router.post('/reports',       auth, rejectGuest, createReport);
+router.patch('/reports/:id',  auth, rejectGuest, updateReport);
+router.delete('/reports/:id', auth, rejectGuest, deleteReport);
 
 module.exports = router;

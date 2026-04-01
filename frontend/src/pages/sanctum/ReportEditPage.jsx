@@ -55,7 +55,7 @@ export default function ReportEditPage() {
       setTitle(r.title || '');
       setCreatorId(r.creator_character_id || null);
       if (r.creator_character_id && r.creator_name) {
-        setCreatorChar({ id: r.creator_character_id, character_name: r.creator_name, image_url: r.creator_image_url, code_name: '' });
+        setCreatorChar({ id: r.creator_character_id, character_name: r.creator_name, image_url: r.creator_image_url, username: '' });
       }
       const decoded = decodeBody(r.body);
       setClf(decoded.classification);
@@ -137,7 +137,7 @@ export default function ReportEditPage() {
         />
 
         {/* Subject + Classification */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="draft-2col">
           <div className="draft-field">
             <div className="draft-field-label">Subject</div>
             <input className="draft-input" placeholder="Target, operation, faction…" value={subject} onChange={e => setSubject(e.target.value)} />
@@ -187,7 +187,7 @@ export default function ReportEditPage() {
         {/* Body */}
         <textarea
           className="s-textarea-report"
-          style={{ minHeight: 340, width: '100%', boxSizing: 'border-box' }}
+          style={{ minHeight: 'clamp(180px, 40vh, 340px)', width: '100%', boxSizing: 'border-box' }}
           placeholder="Begin report transmission…"
           value={body}
           onChange={e => setBody(e.target.value)}

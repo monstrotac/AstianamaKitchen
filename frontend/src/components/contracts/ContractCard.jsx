@@ -165,7 +165,7 @@ export default function ContractCard({ contract: initial, onUpdate, onDelete, sp
                     <option value="">— Unassigned —</option>
                     {gardeners.map(g => (
                       <option key={g.id} value={g.id}>
-                        {g.operativeName || g.charName || g.codeName}
+                        {g.operativeName || g.charName || g.username}
                       </option>
                     ))}
                   </select>

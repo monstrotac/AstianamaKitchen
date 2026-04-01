@@ -7,7 +7,9 @@
       "Bash(node src/db/migrate.js)",
       "Read(//j//**)",
       "Read(//j/Core file locations/Desktop/**)",
-      "Read(//j/Core file locations/**)"
+      "Read(//j/Core file locations/**)",
+      "Bash(wc -l src/components/*.tsx src/lib/rollUtils.ts src/lib/sheetTypes.ts src/models/*.ts)",
+      "Bash(node -e ':*)"
     ],
     "additionalDirectories": [
       "j:\\Core file locations\\Desktop\\AstianamaKitchen"

@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { upsertSkills } from '../../api/sanctum';
-import { SKILL_LIST, ATTR_LABELS } from '../../utils/rollUtils';
+import { SKILL_LIST, ATTR_LABELS, ATTRIBUTE_FULL_NAMES } from '../../utils/rollUtils';
 
-const ATTR_ORDER = ['str', 'dex', 'con', 'int_score', 'wis', 'cha'];
-const ATTR_FULL  = {
-  str: 'Strength', dex: 'Dexterity', con: 'Constitution',
-  int_score: 'Intelligence', wis: 'Wisdom', cha: 'Charisma',
-};
+const ATTR_ORDER = ['str', 'dex', 'sta', 'cha', 'man', 'app', 'per', 'int_score', 'wit'];
+const ATTR_FULL  = ATTRIBUTE_FULL_NAMES;
 
 const RANK_TIERS = ['—', 'Novice', 'Trained', 'Skilled', 'Expert', 'Master'];
 
@@ -109,7 +106,7 @@ export default function SkillList({ charId, skills, editing = false, onChanged, 
             {!isCollapsed && (
               <div>
                 {skills.map((sk) => {
-                  const attrMod    = attrs ? (attrs[sk.attribute] ?? 1) : 0;
+                  const attrMod    = attrs ? (attrs[sk.attribute] ?? 0) : 0;
                   const total      = attrMod + sk.rank;
                   const isSaving   = saving === sk.skill_name;
                   const desc       = descriptions.find(d => d.type === 'skill' && d.key === sk.skill_name);
@@ -120,12 +117,16 @@ export default function SkillList({ charId, skills, editing = false, onChanged, 
                   return (
                     <div key={sk.skill_name}>
                       <div
-                        className={`s-skill-row${isExpanded ? ' s-skill-row-open' : ''}`}
+                        className={`s-skill-row${isExpanded ? ' s-skill-row-open' : ''}${desc ? ' s-skill-row-expandable' : ''}`}
+                        onClick={() => desc && toggleExpand(sk.skill_name)}
+                        role={desc ? 'button' : undefined}
+                        tabIndex={desc ? 0 : undefined}
+                        onKeyDown={e => {
+                          if (desc && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleExpand(sk.skill_name); }
+                        }}
                       >
-                        {/* Bonus badge (view mode) */}
-                        {!editing && (
-                          <span className="s-skill-bonus">{total >= 0 ? `+${total}` : total}</span>
-                        )}
+                        {/* Bonus badge */}
+                        <span className="s-skill-bonus">{total >= 0 ? `+${total}` : total}</span>
 
                         {/* Rank dots (view mode) */}
                         {!editing && (
@@ -142,54 +143,60 @@ export default function SkillList({ charId, skills, editing = false, onChanged, 
                           )}
                         </span>
 
-                        {/* Edit mode: rank stepper */}
+                        {/* Edit mode: clickable dots */}
                         {editing && (
-                          <div className="s-skill-stepper">
-                            <button
-                              className="s-btn small"
-                              onClick={() => setRank(sk, sk.rank - 1)}
-                              disabled={isSaving || sk.rank <= 0}
-                            >−</button>
-                            <span className="s-skill-stepper-val">{sk.rank}</span>
-                            <button
-                              className="s-btn small"
-                              onClick={() => setRank(sk, sk.rank + 1)}
-                              disabled={isSaving || sk.rank >= 5}
-                            >+</button>
-                          </div>
+                          <span className="s-skill-edit-dots" onClick={e => e.stopPropagation()}>
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                className={`s-skill-edit-dot${i < sk.rank ? ' filled' : ' empty'}`}
+                                onClick={() => setRank(sk, i + 1 === sk.rank ? 0 : i + 1)}
+                                disabled={isSaving}
+                                title={`${i + 1 === sk.rank ? 'Reset to 0' : `Set to ${i + 1}`} — ${RANK_TIERS[i + 1]}`}
+                              >
+                                {i < sk.rank ? '◆' : '◇'}
+                              </button>
+                            ))}
+                          </span>
                         )}
 
                         {/* Roll button */}
                         {onRoll && !editing && (
                           <button
                             className="s-btn small s-skill-roll-btn"
-                            onClick={() => onRoll(sk)}
+                            onClick={e => { e.stopPropagation(); onRoll(sk); }}
                           >
                             ◆ Roll
                           </button>
                         )}
 
-                        {/* Expand toggle — always reserve the slot so roll buttons stay aligned */}
+                        {/* Expand indicator */}
                         {desc ? (
-                          <button
-                            className="s-expand-btn"
-                            onClick={() => toggleExpand(sk.skill_name)}
-                            title={isExpanded ? 'Collapse' : 'View details'}
-                          >
+                          <span className="s-expand-btn">
                             {isExpanded ? '▴' : '▾'}
-                          </button>
+                          </span>
                         ) : (
                           <span className="s-expand-btn" style={{ visibility: 'hidden', pointerEvents: 'none' }}>▾</span>
                         )}
                       </div>
 
-                      {/* Expanded description + rank tier */}
+                      {/* Expanded description + rank tier + rank flavor */}
                       {isExpanded && desc && (
                         <div className="s-skill-detail">
                           <p className="s-skill-detail-desc">{desc.description}</p>
-                          {!editing && (
-                            <RankTierBar current={sk.rank} />
-                          )}
+                          {!editing && <RankTierBar current={sk.rank} />}
+                          {(() => {
+                            const rankDesc = desc.rank_descriptions?.find(rd => rd.rank === sk.rank);
+                            return rankDesc ? (
+                              <div className="s-rank-flavor">
+                                <span className="s-rank-flavor-label">
+                                  {sk.rank === 0 ? 'Untrained' : `Rank ${sk.rank} — ${rankDesc.label}`}
+                                </span>
+                                <span className="s-rank-flavor-desc">{rankDesc.description}</span>
+                              </div>
+                            ) : null;
+                          })()}
                         </div>
                       )}
                     </div>

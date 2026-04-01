@@ -20,8 +20,8 @@ async function listContracts(req, res) {
   let query, params;
   if (seesAllContracts(req.user)) {
     query = `SELECT c.*,
-               u1.code_name as created_by_name, sc1.faction as created_by_faction,
-               u2.code_name as assigned_to_name, sc2.faction as assigned_to_faction,
+               u1.username as created_by_name, sc1.faction as created_by_faction,
+               u2.username as assigned_to_name, sc2.faction as assigned_to_faction,
                cs.gardener_name as assigned_to_gardener_name
              FROM contracts c
              LEFT JOIN users u1 ON u1.id = c.created_by
@@ -33,8 +33,8 @@ async function listContracts(req, res) {
     params = [];
   } else {
     query = `SELECT c.*,
-               u1.code_name as created_by_name, sc1.faction as created_by_faction,
-               u2.code_name as assigned_to_name, sc2.faction as assigned_to_faction,
+               u1.username as created_by_name, sc1.faction as created_by_faction,
+               u2.username as assigned_to_name, sc2.faction as assigned_to_faction,
                cs.gardener_name as assigned_to_gardener_name
              FROM contracts c
              LEFT JOIN users u1 ON u1.id = c.created_by
@@ -73,8 +73,8 @@ async function getContract(req, res) {
   const { id } = req.params;
   const { rows } = await pool.query(
     `SELECT c.*,
-       u1.code_name as created_by_name,
-       u2.code_name as assigned_to_name,
+       u1.username as created_by_name,
+       u2.username as assigned_to_name,
        cs.gardener_name as assigned_to_gardener_name
      FROM contracts c
      LEFT JOIN users u1 ON u1.id = c.created_by
@@ -145,7 +145,7 @@ async function deleteContract(req, res) {
 async function activeFeed(req, res) {
   const { rows } = await pool.query(
     `SELECT c.id, c.name, c.classification, c.priority, c.status, c.method, c.weapon, c.created_at,
-            u2.code_name as assigned_to_name, sc2.faction as assigned_to_faction
+            u2.username as assigned_to_name, sc2.faction as assigned_to_faction
      FROM contracts c
      LEFT JOIN users u2 ON u2.id = c.assigned_to
      LEFT JOIN spire_characters sc2 ON sc2.id = u2.active_character_id
@@ -159,7 +159,7 @@ async function completeFeed(req, res) {
   const { rows } = await pool.query(
     `SELECT c.id, c.name, c.classification, c.priority, c.status, c.method,
             c.closed_approach, c.closed_date, c.closed_notes,
-            u2.code_name as assigned_to_name, sc2.faction as assigned_to_faction
+            u2.username as assigned_to_name, sc2.faction as assigned_to_faction
      FROM contracts c
      LEFT JOIN users u2 ON u2.id = c.assigned_to
      LEFT JOIN spire_characters sc2 ON sc2.id = u2.active_character_id

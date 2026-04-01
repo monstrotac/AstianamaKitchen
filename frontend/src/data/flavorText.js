@@ -19,16 +19,20 @@ export const FF = [
   "Too many weeds obscure the path. The intelligence is incomplete — patience before the harvest.",
 ];
 
-export const N20 = [
+export const CRIT_SUCCESS = [
   "The blade sings. The garden weeps. None survive the Gardener's touch — not in this life, not in the next.",
   "Perfection. The poison moves without sound, without shadow, without mercy. The harvest is absolute.",
   "The Force bends to the blade. Even the stars hold their breath. The season belongs to the Order.",
 ];
 
-export const N1 = [
+export const CRIT_FAILURE = [
   "The thorn turns inward. Even poison has its price, and today that price is paid.",
   "The garden rejects its own gardener. The blade demands patience before blood.",
   "The season turns against the harvest. Fortune abandons the orchard. Recalculate everything.",
 ];
+
+// Legacy aliases for backward compatibility
+export const N20 = CRIT_SUCCESS;
+export const N1 = CRIT_FAILURE;
 
 export const pick = arr => arr[Math.floor(Math.random() * arr.length)];

@@ -50,7 +50,7 @@ export default function ContractsPage() {
         id:            c.user_id,
         operativeName: c.operative_name || null,
         charName:      c.character_name || null,
-        codeName:      c.code_name,
+        username:      c.username,
       })));
     } catch(e) {}
   }
@@ -90,7 +90,7 @@ export default function ContractsPage() {
             My Contracts
             {spireChar && (
               <span style={{ fontSize: '0.65rem', fontFamily: "'Share Tech Mono',monospace", color: 'var(--dim)', marginLeft: '1rem', letterSpacing: '0.05em' }}>
-                Operative: {spireChar.code_name} · Prof +{({ acolyte:0, apprentice:2, lord:5, darth:7 }[spireChar.spire_rank] || 0)}
+                Operative: {spireChar.username} · Prof +{({ acolyte:0, apprentice:2, lord:5, darth:7 }[spireChar.spire_rank] || 0)}
               </span>
             )}
           </div>
