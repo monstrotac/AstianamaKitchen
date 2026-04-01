@@ -20,9 +20,9 @@ function MemberCard({ member, combatAbilities, socket, sessionId, isOwner, isCre
   const [customHp, setCustomHp] = useState('');
 
   const attrs = {
-    str: member.str ?? 1, dex: member.dex ?? 1, sta: member.sta ?? 1,
-    cha: member.cha ?? 1, man: member.man ?? 1, app: member.app ?? 1,
-    per: member.per ?? 1, int_score: member.int_score ?? 1, wit: member.wit ?? 1,
+    str: member.str ?? 0, dex: member.dex ?? 0, sta: member.sta ?? 0,
+    cha: member.cha ?? 0, man: member.man ?? 0, app: member.app ?? 0,
+    per: member.per ?? 0, int_score: member.int_score ?? 0, wit: member.wit ?? 0,
   };
   const skills = member.skills || [];
   const armor = member.armor || 'unarmored';

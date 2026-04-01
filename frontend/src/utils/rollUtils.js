@@ -1,4 +1,4 @@
-// ── Attribute modifier — the score IS the modifier (1 to 5) ─────────────────
+// ── Attribute modifier — the score IS the modifier (-2 to 5) ─────────────────
 export const ATTR_MOD = score => score ?? 0;
 
 // ── 9 Attributes (Physical / Social / Mental) ───────────────────────────────
@@ -34,9 +34,21 @@ export const ATTRIBUTE_CATEGORIES = {
   Mental:   ['per', 'int_score', 'wit'],
 };
 
-export const ATTRIBUTE_MIN = 0;
+export const ATTRIBUTE_MIN = -2;
 export const ATTRIBUTE_MAX = 5;
 export const ATTRIBUTE_DEFAULT = 0;
+
+// Tier labels for attribute scores
+export const ATTRIBUTE_TIER_LABELS = {
+  [-2]: 'Feeble',
+  [-1]: 'Poor',
+  0: 'Average',
+  1: 'Above Average',
+  2: 'Good',
+  3: 'Exceptional',
+  4: 'Outstanding',
+  5: 'Legendary',
+};
 
 // ── Force System ─────────────────────────────────────────────────────────────
 export const FORCE_ATTUNEMENT_MIN = 0;
@@ -213,7 +225,7 @@ export function computeDamageTier(margin) {
 
 // ── Derived stats ────────────────────────────────────────────────────────────
 export const computeHealth = (attrs, skills = []) =>
-  Math.max(2, 2 + (attrs.sta ?? 0) + (skills.find(s => s.skill_name === 'Resilience')?.rank ?? 0));
+  Math.max(2, 3 + (attrs.sta ?? 0) + (skills.find(s => s.skill_name === 'Resilience')?.rank ?? 0));
 
 export const computeDefense = (attrs) => 10 + (attrs.dex ?? 0);
 

@@ -27,7 +27,7 @@ export default function ActionsPanel({ onClose, members, socket, sessionId }) {
 
     // For Force Push and Force Healing, send wit as modifier
     if (selected.id === 'force_push' || selected.id === 'force_healing') {
-      payload.modifier = activeChar?.wit ?? 1;
+      payload.modifier = activeChar?.wit ?? 0;
     }
 
     socket.emit('session:use-action', payload);

@@ -116,8 +116,8 @@ function validateAttrs(body) {
   for (const key of ATTR_KEYS) {
     if (body[key] !== undefined) {
       const v = body[key];
-      if (!Number.isInteger(v) || v < 1 || v > 5) {
-        return `${key} must be an integer between 1 and 5`;
+      if (!Number.isInteger(v) || v < -2 || v > 5) {
+        return `${key} must be an integer between -2 and 5`;
       }
     }
   }
@@ -175,7 +175,7 @@ async function createCharacter(req, res) {
       userId,
       spire_rank || 'acolyte',
       status_name || null, species || null, bio || null, master_id || null,
-      str ?? 1, dex ?? 1, sta ?? 1, cha ?? 1, man ?? 1, app ?? 1, per ?? 1, int_score ?? 1, wit ?? 1,
+      str ?? 0, dex ?? 0, sta ?? 0, cha ?? 0, man ?? 0, app ?? 0, per ?? 0, int_score ?? 0, wit ?? 0,
       force_attunement ?? 0, willpower_score ?? 0, control ?? 0, sense ?? 0, alter_discipline ?? 0,
       armor || 'unarmored',
       total_xp ?? 0, spent_xp ?? 0,

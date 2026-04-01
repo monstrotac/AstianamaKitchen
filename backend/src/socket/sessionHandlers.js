@@ -91,7 +91,7 @@ async function computeTargetDefenseDC(targetMember, defenseType, attackSkill) {
   if (!rows.length) return null;
 
   const formula = rows[0];
-  const attrMod = targetMember[formula.attribute_key] ?? 1;
+  const attrMod = targetMember[formula.attribute_key] ?? 0;
   let bonus = attrMod;
 
   if (formula.skill_name) {
@@ -139,10 +139,10 @@ function applyAttackerConditions(baseModifier, attackerConditions) {
 
 // ── Compute max HP ───────────────────────────────────────────────────────────
 function computeMaxHp(member) {
-  const sta = member.sta ?? 1;
+  const sta = member.sta ?? 0;
   const resilience = member.skills?.find(s => s.skill_name === 'Resilience');
   const resRank = resilience?.rank ?? 0;
-  return Math.max(2, 2 + sta + resRank);
+  return Math.max(2, 3 + sta + resRank);
 }
 
 // ── Auto-manage Wounded condition based on HP ────────────────────────────────
