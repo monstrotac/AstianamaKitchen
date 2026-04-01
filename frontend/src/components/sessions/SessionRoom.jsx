@@ -44,7 +44,15 @@ export default function SessionRoom({ socket, sessionName, sessionId, creatorId,
   useEffect(() => {
     if (!socket) return;
 
+    // Join (or re-join after reconnect)
     socket.emit('session:join', { sessionId });
+
+    function onReconnect() {
+      console.log('[Session] Reconnected — re-joining room');
+      socket.emit('session:join', { sessionId });
+    }
+
+    socket.on('connect', onReconnect);
 
     function onHistory(msgs) {
       setMessages(msgs);
@@ -91,6 +99,10 @@ export default function SessionRoom({ socket, sessionName, sessionId, creatorId,
       ));
     }
 
+    function onError({ message }) {
+      console.error('[Session:error]', message);
+    }
+
     socket.on('session:history', onHistory);
     socket.on('session:members', onMembers);
     socket.on('session:message', onMessage);
@@ -100,9 +112,11 @@ export default function SessionRoom({ socket, sessionName, sessionId, creatorId,
     socket.on('session:defense-prompt', onDefensePrompt);
     socket.on('session:defense-resolved', onDefenseResolved);
     socket.on('session:conditions-update', onConditionsUpdate);
+    socket.on('session:error', onError);
 
     return () => {
       socket.emit('session:leave', { sessionId });
+      socket.off('connect', onReconnect);
       socket.off('session:history', onHistory);
       socket.off('session:members', onMembers);
       socket.off('session:message', onMessage);
@@ -112,6 +126,7 @@ export default function SessionRoom({ socket, sessionName, sessionId, creatorId,
       socket.off('session:defense-prompt', onDefensePrompt);
       socket.off('session:defense-resolved', onDefenseResolved);
       socket.off('session:conditions-update', onConditionsUpdate);
+      socket.off('session:error', onError);
     };
   }, [socket, sessionId, user?.id]);
 
@@ -183,6 +198,7 @@ export default function SessionRoom({ socket, sessionName, sessionId, creatorId,
             combatAbilities={combatAbilities}
             socket={socket}
             myConditions={members.find(m => m.user_id === user?.id)?.conditions || []}
+            onDefend={() => setPendingDefense(null)}
           />
         )}
 

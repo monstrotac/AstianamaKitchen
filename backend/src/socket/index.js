@@ -24,7 +24,14 @@ function initSocket(server) {
   });
 
   io.on('connection', (socket) => {
+    console.log('[Socket.io] New connection:', socket.id, 'user:', socket.user?.sub);
     registerSessionHandlers(io, socket);
+    socket.onAny((event, ...args) => {
+      console.log('[Socket.io] Event:', event, 'from:', socket.id);
+    });
+    socket.on('disconnect', (reason) => {
+      console.log('[Socket.io] Disconnect:', socket.id, 'reason:', reason);
+    });
   });
 
   console.log('[Socket.io] Initialized');

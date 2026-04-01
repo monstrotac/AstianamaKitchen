@@ -412,7 +412,7 @@ module.exports = function registerSessionHandlers(io, socket) {
         targetUserId,
       });
 
-      setTimeout(() => pendingAttacks.delete(attackId), 60000);
+      setTimeout(() => pendingAttacks.delete(attackId), 300000); // 5 minutes
 
       io.to(`session:${sessionId}`).emit('session:message', {
         id: `sys-atk-${Date.now()}`,
@@ -437,9 +437,10 @@ module.exports = function registerSessionHandlers(io, socket) {
 
   // ── DEFENSE CHOOSE ──────────────────────────────────────────────────────────
   socket.on('session:defense-choose', async ({ attackId, defenseType }) => {
+    console.log('[Session:defense-choose] Received', { attackId, defenseType, userId: socket.user.sub, pendingCount: pendingAttacks.size, pendingKeys: [...pendingAttacks.keys()] });
     try {
       const pending = pendingAttacks.get(attackId);
-      if (!pending) return socket.emit('session:error', { message: 'Attack expired or not found' });
+      if (!pending) { console.log('[Session:defense-choose] Attack not found in pending map'); return socket.emit('session:error', { message: 'Attack expired or not found' }); }
       if (pending.targetUserId !== socket.user.sub) return socket.emit('session:error', { message: 'Not your attack to defend' });
 
       pendingAttacks.delete(attackId);
@@ -513,7 +514,7 @@ module.exports = function registerSessionHandlers(io, socket) {
       const { rows } = await pool.query(
         `INSERT INTO session_messages (session_id, user_id, character_id, msg_type, roll_data)
          VALUES ($1, $2, $3, 'roll', $4) RETURNING *`,
-        [sessionId, attackerCharacterId, attackerCharacterId, JSON.stringify(rollResult)]
+        [sessionId, attackerUserId, attackerCharacterId, JSON.stringify(rollResult)]
       );
 
       const { rows: charRows } = await pool.query(
@@ -521,20 +522,25 @@ module.exports = function registerSessionHandlers(io, socket) {
         [attackerCharacterId]
       );
 
-      io.to(`session:${sessionId}`).emit('session:message', {
+      const room = `session:${sessionId}`;
+      const roomSockets = await io.in(room).fetchSockets();
+      console.log('[Session:defense-choose] Emitting roll to room', room, 'sockets in room:', roomSockets.length);
+
+      io.to(room).emit('session:message', {
         ...rows[0],
         character_name: charRows[0]?.character_name,
         image_url: charRows[0]?.image_url,
         faction: charRows[0]?.faction,
       });
 
-      io.to(`session:${sessionId}`).emit('session:defense-resolved', { attackId });
+      io.to(room).emit('session:defense-resolved', { attackId });
 
       if (finalDamage > 0 && (rollResult.outcome === 'success' || rollResult.outcome === 'crit_success')) {
         await applyDamage(io, sessionId, targetUserId, finalDamage, members);
       }
     } catch (err) {
-      console.error('[Session:defense-choose]', err);
+      console.error('[Session:defense-choose] ERROR:', err.message, err.stack);
+      socket.emit('session:error', { message: 'Defense failed: ' + err.message });
     }
   });
 

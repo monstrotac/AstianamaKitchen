@@ -4,9 +4,11 @@ import { computeCombatAbility, ARMOR_TYPES } from '../../utils/rollUtils';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
-export default function DefensePrompt({ attack, combatAbilities, socket, myConditions = [] }) {
+export default function DefensePrompt({ attack, combatAbilities, socket, myConditions = [], onDefend }) {
   const { activeChar, activeSkills } = useSanctum();
   const [defenseType, setDefenseType] = useState('Dodge');
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
 
   const attrs = activeChar || {};
   const armor = activeChar?.armor || 'unarmored';
@@ -58,12 +60,27 @@ export default function DefensePrompt({ attack, combatAbilities, socket, myCondi
     }
   }, [defenses]);
 
-  function handleDefend() {
-    if (!socket) return;
+  function handleDefend(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!socket || !socket.connected) {
+      setError('Not connected to server — try refreshing the page.');
+      console.error('[DefensePrompt] Socket not connected!', { socket: !!socket, connected: socket?.connected });
+      return;
+    }
+    if (sent) return;
+    setSent(true);
+    setError('');
+    console.log('[DefensePrompt] Emitting defense-choose', { attackId: attack.attackId, defenseType, socketId: socket.id });
     socket.emit('session:defense-choose', {
       attackId: attack.attackId,
       defenseType,
+    }, (ack) => {
+      // If server supports ack, great. If not, this is harmless.
+      console.log('[DefensePrompt] Server ack:', ack);
     });
+    // Give the server a moment to respond before clearing
+    setTimeout(() => onDefend?.(), 500);
   }
 
   return (
@@ -109,9 +126,10 @@ export default function DefensePrompt({ attack, combatAbilities, socket, myCondi
         ))}
       </div>
 
+      {error && <div style={{ color: '#e74c3c', fontSize: '0.75rem', marginBottom: '0.5rem' }}>{error}</div>}
       <div className="sess-defense-prompt-actions">
-        <button className="ct-action-btn green" onClick={handleDefend}>
-          Defend
+        <button type="button" className="ct-action-btn green" onClick={handleDefend} disabled={sent}>
+          {sent ? 'Defending…' : 'Defend'}
         </button>
       </div>
     </div>
