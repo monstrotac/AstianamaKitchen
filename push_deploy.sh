@@ -88,7 +88,7 @@ REMOTE
 
 # ── Run remote deploy.sh ──────────────────────────────────────────────────────
 step "Running deploy.sh on server"
-ssh_exec bash -c "cd '$REMOTE_DIR' && bash deploy.sh --skip-pull $REMOTE_FLAGS"
+ssh_exec "cd '$REMOTE_DIR' && bash deploy.sh --skip-pull $REMOTE_FLAGS"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo ""
