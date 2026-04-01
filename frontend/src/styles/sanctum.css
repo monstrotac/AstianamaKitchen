@@ -3113,7 +3113,8 @@
 .s-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(2px);
   z-index: 900;
 }
 .s-quick-roll-panel {
@@ -3121,8 +3122,9 @@
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   z-index: 901;
-  background: var(--bg-panel, #1a1a1f);
+  background: var(--modal-bg);
   border: 1px solid var(--border);
+  border-top: 2px solid var(--crimson);
   padding: 1.5rem;
   min-width: 320px;
   max-width: 400px;
@@ -3551,8 +3553,9 @@
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   z-index: 901;
-  background: var(--bg-panel, #1a1a1f);
+  background: var(--modal-bg);
   border: 1px solid var(--border);
+  border-top: 2px solid var(--crimson);
   padding: 2rem;
   max-width: 720px;
   max-height: 85vh;
