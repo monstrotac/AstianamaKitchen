@@ -110,57 +110,63 @@ function FeedItem({ item }) {
 
   return (
     <div
-      className="s-feed-item"
+      className={`s-feed-item${hasBody ? ' s-feed-item-expandable' : ''}`}
       onClick={() => hasBody && setExpanded(p => !p)}
-      style={{ cursor: hasBody ? 'pointer' : 'default' }}
     >
       <div className="s-feed-item-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', flex: 1 }}>
+        <div className="s-feed-item-top">
           <span className="s-feed-type-badge" style={{ background: meta.color }}>{meta.label}</span>
-          {item.feed_type === 'trial' && item.status && (
-            <span style={{ fontSize: '0.6rem', color: STATUS_COLOR[item.status], fontFamily: "'Share Tech Mono',monospace" }}>
-              [{item.status}]
-            </span>
-          )}
-          {item.feed_type !== 'character' && (
-            <span className="s-feed-title">{item.title}</span>
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {item.feed_type === 'character' ? (
-            <span style={{ fontSize: '0.6rem', color: 'var(--dim)', fontFamily: "'Share Tech Mono',monospace" }}>
-              {[item.username, item.title, item.full_name].filter(Boolean).join(' · ')}
-            </span>
-          ) : item.author_name && (
-            <span style={{ fontSize: '0.6rem', color: 'var(--dim)' }}>{item.author_name}</span>
-          )}
-          <span style={{ fontSize: '0.6rem', color: 'var(--dim)', fontFamily: "'Share Tech Mono',monospace" }}>
+          <span className="s-feed-date">
             {new Date(item.created_at).toLocaleDateString()}
           </span>
+          {hasBody && <span className="s-feed-expand-icon">{expanded ? '▴' : '▾'}</span>}
+        </div>
+
+        <div className="s-feed-item-main">
+          {item.feed_type === 'character' ? (
+            <span className="s-feed-title">
+              {[item.title, item.full_name].filter(Boolean).join(' — ') || 'New Character'}
+            </span>
+          ) : (
+            <span className="s-feed-title">
+              {item.title || <em style={{ opacity: 0.4 }}>Untitled</em>}
+              {item.feed_type === 'trial' && item.status && (
+                <span className="s-feed-status" style={{ color: STATUS_COLOR[item.status] }}>
+                  {item.status}
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+
+        <div className="s-feed-item-meta">
+          {item.feed_type === 'character' ? (
+            <span>by {item.username}</span>
+          ) : item.author_name && (
+            <span>by {item.author_name}</span>
+          )}
           {link && !hasBody && (
             <Link
               to={link}
-              className="s-hero-link"
-              style={{ fontSize: '0.6rem' }}
+              className="s-feed-view-link"
               onClick={e => e.stopPropagation()}
             >
               View →
             </Link>
           )}
-          {hasBody && <span style={{ fontSize: '0.6rem', color: 'var(--mono)' }}>{expanded ? '▲' : '▼'}</span>}
         </div>
       </div>
 
       {expanded && hasBody && (
         <div className="s-feed-item-body">
-          <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>
+          <div style={{ whiteSpace: 'pre-wrap' }}>
             {item.body.length > 400 ? item.body.slice(0, 400) + '…' : item.body}
           </div>
           {link && (
             <Link
               to={link}
-              className="s-hero-link"
-              style={{ fontSize: '0.7rem', marginTop: '0.75rem', display: 'inline-block' }}
+              className="s-feed-view-link"
+              style={{ marginTop: '0.75rem', display: 'inline-block' }}
               onClick={e => e.stopPropagation()}
             >
               Read more →

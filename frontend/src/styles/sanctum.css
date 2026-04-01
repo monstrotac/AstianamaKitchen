@@ -1386,42 +1386,90 @@
 /* ── Activity Feed ───────────────────────────────────────────────────────── */
 
 .s-feed-item {
-  background: var(--card-bg);
+  background: var(--panel);
   border: 1px solid var(--border-sub);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
   transition: border-color 0.15s;
 }
-.s-feed-item:hover { border-color: var(--border); }
+.s-feed-item-expandable { cursor: pointer; }
+.s-feed-item-expandable:hover { border-color: var(--border); }
 
 .s-feed-item-header {
+  padding: 0.85rem 1rem;
+}
+
+.s-feed-item-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .s-feed-type-badge {
   font-family: 'Orbitron', monospace;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--bg);
-  padding: 0.18rem 0.5rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 2px;
   flex-shrink: 0;
 }
 
+.s-feed-date {
+  font-size: 0.65rem;
+  color: var(--dim);
+  font-family: 'Share Tech Mono', monospace;
+  margin-left: auto;
+}
+
+.s-feed-expand-icon {
+  font-size: 0.75rem;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+
+.s-feed-item-main {
+  margin-bottom: 0.25rem;
+}
+
 .s-feed-title {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text);
   letter-spacing: 0.02em;
+  line-height: 1.4;
 }
+
+.s-feed-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-left: 0.5rem;
+}
+
+.s-feed-item-meta {
+  font-size: 0.68rem;
+  color: var(--dim);
+  font-family: 'Share Tech Mono', monospace;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.s-feed-view-link {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--crimson);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.s-feed-view-link:hover { color: var(--bright-red); }
 
 .s-feed-item-body {
   padding: 0.75rem 1rem 0.9rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text);
   border-top: 1px solid var(--border-sub);
   line-height: 1.7;
@@ -3378,6 +3426,10 @@
   letter-spacing: 0.08em;
   color: var(--mono);
   margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 .s-force-discipline-score {
   font-family: 'Orbitron', monospace;
@@ -3405,6 +3457,91 @@
   font-size: 0.5rem;
   color: var(--dim);
   margin-top: 0.2rem;
+}
+.s-force-info-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--dim);
+  font-size: 0.55rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.s-force-info-btn:hover {
+  border-color: var(--mono);
+  color: var(--mono);
+}
+.s-force-desc-panel {
+  margin-top: 0.75rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--mono);
+  background: var(--card-bg);
+  animation: fadein 0.25s ease;
+}
+.s-force-desc-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.s-force-desc-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--mono);
+  text-transform: uppercase;
+}
+.s-force-desc-subtitle {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--dim);
+}
+.s-force-desc-text {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.65;
+  margin: 0 0 0.75rem;
+}
+.s-force-desc-powers-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--mono);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.s-force-desc-powers {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.78rem;
+  color: var(--text);
+  line-height: 1.7;
+  list-style-type: none;
+}
+.s-force-desc-powers li {
+  position: relative;
+  padding-left: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.s-force-desc-powers li::before {
+  content: '\25C6';
+  position: absolute;
+  left: -1rem;
+  color: var(--mono);
+  font-size: 0.5rem;
+  top: 0.25rem;
+}
+.s-force-desc-powers strong {
+  color: var(--mono);
+  font-family: 'Cinzel', serif;
 }
 
 /* ── Combat Rules Modal ──────────────────────────────────────────────────── */
@@ -3602,8 +3739,8 @@
   .s-hero { padding: 2.5rem 0.75rem 2rem; }
   .s-hero-link { padding: 0.55rem 1.2rem; font-size: 0.65rem; }
 
-  /* Feed items — stack header on mobile */
-  .s-feed-item-header { flex-direction: column; align-items: flex-start; gap: 0.4rem; padding: 0.6rem 0.75rem; }
+  /* Feed items — tighter on mobile */
+  .s-feed-item-header { padding: 0.65rem 0.75rem; }
   .s-feed-title { font-size: 0.82rem; }
 
   /* Holopad report cards — stack header */
