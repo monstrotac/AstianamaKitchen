@@ -175,7 +175,7 @@ async function createCharacter(req, res) {
       userId,
       spire_rank || 'acolyte',
       status_name || null, species || null, bio || null, master_id || null,
-      str ?? 0, dex ?? 0, sta ?? 0, cha ?? 0, man ?? 0, app ?? 0, per ?? 0, int_score ?? 0, wit ?? 0,
+      str ?? 1, dex ?? 1, sta ?? 1, cha ?? 1, man ?? 1, app ?? 1, per ?? 1, int_score ?? 1, wit ?? 1,
       force_attunement ?? 0, willpower_score ?? 0, control ?? 0, sense ?? 0, alter_discipline ?? 0,
       armor || 'unarmored',
       total_xp ?? 0, spent_xp ?? 0,
