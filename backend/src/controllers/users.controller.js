@@ -192,21 +192,19 @@ async function deleteUser(req, res) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    // Clean up related data
-    await client.query('DELETE FROM character_skill_overrides WHERE user_id=$1', [id]);
-    await client.query('DELETE FROM character_sheets WHERE user_id=$1', [id]);
-    // Spire characters and their dependents
-    const { rows: chars } = await client.query('SELECT id FROM spire_characters WHERE user_id=$1', [id]);
-    for (const c of chars) {
-      await client.query('DELETE FROM spire_skill_overrides WHERE character_id=$1', [c.id]);
-      await client.query('DELETE FROM spire_stories WHERE character_id=$1', [c.id]);
-    }
-    await client.query('DELETE FROM spire_characters WHERE user_id=$1', [id]);
-    // Trials assigned to or created by the user
-    await client.query('DELETE FROM spire_trials WHERE assigned_to=$1 OR created_by=$1', [id]);
-    // Reports created by the user
-    await client.query('DELETE FROM spire_reports WHERE created_by=$1', [id]);
-    // Finally delete the user
+
+    // Clean up tables that lack ON DELETE CASCADE on user FK
+    // Contract rolls reference users(id) without cascade
+    await client.query('DELETE FROM contract_rolls WHERE rolled_by=$1', [id]);
+    // Contracts reference users(id) without cascade
+    await client.query('UPDATE contracts SET assigned_to=NULL WHERE assigned_to=$1', [id]);
+    await client.query('DELETE FROM contracts WHERE created_by=$1', [id]);
+
+    // Everything else cascades automatically when the user row is deleted:
+    // spire_characters (CASCADE) → spire_skills, character_stories, session_members, session_messages (all CASCADE)
+    // rolling_sessions (CASCADE), character_sheets (CASCADE), character_skill_overrides (CASCADE)
+    // trials.assigned_to/assigned_by (SET NULL), reports.author_id (SET NULL), events.author_id (SET NULL)
+
     const { rowCount } = await client.query('DELETE FROM users WHERE id=$1', [id]);
     if (!rowCount) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'User not found' }); }
     await client.query('COMMIT');
