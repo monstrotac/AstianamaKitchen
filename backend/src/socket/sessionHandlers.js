@@ -248,10 +248,12 @@ async function getCharName(sessionId, userId) {
   return rows[0]?.character_name || 'Unknown';
 }
 
+// Shared across all socket connections (attacks are cross-socket)
+const pendingAttacks = new Map();
+
 // ═════════════════════════════════════════════════════════════════════════════
 module.exports = function registerSessionHandlers(io, socket) {
   const joinedRooms = new Set();
-  const pendingAttacks = new Map();
 
   // ── JOIN ────────────────────────────────────────────────────────────────────
   socket.on('session:join', async ({ sessionId }) => {
