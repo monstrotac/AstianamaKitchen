@@ -84,7 +84,7 @@ async function joinSession(req, res) {
     `SELECT rank FROM spire_skills WHERE character_id = $1 AND skill_name = 'Resilience'`, [characterId]
   );
   const resRank = resSkill.rows[0]?.rank ?? 0;
-  const maxHp = Math.max(2, 2 + sta + resRank);
+  const maxHp = Math.max(2, 3 + sta + resRank);
 
   try {
     await pool.query(
