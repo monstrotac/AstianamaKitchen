@@ -7,19 +7,33 @@ function formatDate(iso) {
 export default function TrialCard({ trial, canEdit }) {
   const isDraft = trial.is_published === false;
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="s-trial-card-wrap">
       <Link
         to={isDraft ? `/trials/${trial.id}/edit` : `/trials/${trial.id}`}
         className="s-trial-card"
         data-status={trial.status}
         style={isDraft ? { opacity: 0.7, borderStyle: 'dashed' } : undefined}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div className="s-trial-card-top">
+          <div className="s-trial-title-row">
             <div className="s-trial-title">{trial.title || <em style={{ opacity: 0.4 }}>Untitled</em>}</div>
             {isDraft && <span className="draft-badge draft">Draft</span>}
           </div>
-          <span className={`s-trial-status ${trial.status}`}>{trial.status}</span>
+          <div className="s-trial-card-right">
+            <span className={`s-trial-status ${trial.status}`}>{trial.status}</span>
+            {!isDraft && (
+              <div className="s-trial-card-actions" onClick={e => e.preventDefault()}>
+                {canEdit && (
+                  <Link to={`/trials/${trial.id}/edit`} className="s-btn small">
+                    ✎ Edit
+                  </Link>
+                )}
+                <Link to={`/trials/${trial.id}`} className="s-btn small">
+                  View →
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
         <div className="s-trial-meta">
           {trial.assigned_to_name && <span>Assigned to: {trial.assigned_to_name}</span>}
@@ -36,28 +50,6 @@ export default function TrialCard({ trial, canEdit }) {
           </div>
         )}
       </Link>
-      {!isDraft && (
-        <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: '0.4rem' }}>
-          {canEdit && (
-            <Link
-              to={`/trials/${trial.id}/edit`}
-              className="s-btn small"
-              style={{ fontSize: '0.65rem' }}
-              onClick={e => e.stopPropagation()}
-            >
-              ✎ Edit
-            </Link>
-          )}
-          <Link
-            to={`/trials/${trial.id}`}
-            className="s-btn small"
-            style={{ fontSize: '0.65rem' }}
-            onClick={e => e.stopPropagation()}
-          >
-            View →
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
