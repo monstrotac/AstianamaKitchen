@@ -130,7 +130,14 @@ export default function SpireTrialPage() {
       {/* Entries */}
       <div className="s-section-title">Entries</div>
       {entries.length === 0 && <div className="s-empty" style={{ padding: '1rem 0' }}>No entries yet.</div>}
-      {entries.map(entry => <TrialEntry key={entry.id} entry={entry} />)}
+      {entries.map(entry => (
+        <TrialEntry
+          key={entry.id}
+          entry={entry}
+          canManage={canManage || entry.author_id === user?.id}
+          onChanged={load}
+        />
+      ))}
 
       {/* Add entry form */}
       {canPost && (

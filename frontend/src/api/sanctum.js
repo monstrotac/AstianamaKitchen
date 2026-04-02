@@ -42,8 +42,10 @@ export const deleteTrial  = (id)       => client.delete(`/sanctum/trials/${id}`)
 
 // ── Trial Entries ──────────────────────────────────────────────────────────────
 
-export const getEntries = (trialId)        => client.get(`/sanctum/trials/${trialId}/entries`).then(r => r.data);
-export const addEntry   = (trialId, data)  => client.post(`/sanctum/trials/${trialId}/entries`, data).then(r => r.data);
+export const getEntries   = (trialId)        => client.get(`/sanctum/trials/${trialId}/entries`).then(r => r.data);
+export const addEntry     = (trialId, data)  => client.post(`/sanctum/trials/${trialId}/entries`, data).then(r => r.data);
+export const updateEntry  = (entryId, data)  => client.patch(`/sanctum/entries/${entryId}`, data).then(r => r.data);
+export const deleteEntry  = (entryId)        => client.delete(`/sanctum/entries/${entryId}`).then(r => r.data);
 
 // ── Events ────────────────────────────────────────────────────────────────────
 

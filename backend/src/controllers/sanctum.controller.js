@@ -559,6 +559,45 @@ async function addEntry(req, res) {
   res.status(201).json(entry);
 }
 
+async function updateEntry(req, res) {
+  const { entryId } = req.params;
+  const { rows: [entry] } = await pool.query('SELECT * FROM trial_entries WHERE id=$1', [entryId]);
+  if (!entry) return res.status(404).json({ error: 'Entry not found' });
+
+  // Only the author or privileged users can edit
+  if (entry.author_id !== req.user.sub && !isPrivileged(req.user.role, req.user.faction)) {
+    return res.status(403).json({ error: 'Only the author can edit this entry' });
+  }
+
+  const { body, entry_type } = req.body;
+  const updates = [];
+  const values = [];
+  let i = 1;
+  if (body !== undefined)       { updates.push(`body=$${i++}`);       values.push(body); }
+  if (entry_type !== undefined) { updates.push(`entry_type=$${i++}`); values.push(entry_type); }
+  if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
+
+  values.push(entryId);
+  const { rows: [updated] } = await pool.query(
+    `UPDATE trial_entries SET ${updates.join(',')} WHERE id=$${i} RETURNING *`, values
+  );
+  res.json(updated);
+}
+
+async function deleteEntry(req, res) {
+  const { entryId } = req.params;
+  const { rows: [entry] } = await pool.query('SELECT * FROM trial_entries WHERE id=$1', [entryId]);
+  if (!entry) return res.status(404).json({ error: 'Entry not found' });
+
+  // Only the author or privileged users can delete
+  if (entry.author_id !== req.user.sub && !isPrivileged(req.user.role, req.user.faction)) {
+    return res.status(403).json({ error: 'Only the author can delete this entry' });
+  }
+
+  await pool.query('DELETE FROM trial_entries WHERE id=$1', [entryId]);
+  res.json({ ok: true });
+}
+
 // ── Events ────────────────────────────────────────────────────────────────────
 
 async function listEvents(req, res) {
@@ -937,7 +976,7 @@ module.exports = {
   listSkills, upsertSkills, deleteSkill,
   getDescriptions,
   listTrials, createTrial, getTrial, updateTrialStatus, deleteTrial,
-  listEntries, addEntry,
+  listEntries, addEntry, updateEntry, deleteEntry,
   listEvents, createEvent, deleteEvent,
   listStories, getStory, createStory, updateStory, deleteStory, listRecentStories,
   listReports, getReport, createReport, updateReport, deleteReport,

@@ -13,7 +13,7 @@ const {
   listSkills, upsertSkills, deleteSkill,
   getDescriptions,
   listTrials, createTrial, getTrial, updateTrialStatus, deleteTrial,
-  listEntries, addEntry,
+  listEntries, addEntry, updateEntry, deleteEntry,
   listEvents, createEvent, deleteEvent,
   listStories, getStory, createStory, updateStory, deleteStory, listRecentStories,
   listReports, getReport, createReport, updateReport, deleteReport,
@@ -79,8 +79,10 @@ router.delete('/trials/:id', auth, rejectGuest,                      deleteTrial
 
 // ── Trial Entries ──────────────────────────────────────────────────────────────
 
-router.get('/trials/:id/entries',  optionalAuth, listEntries);
-router.post('/trials/:id/entries', auth, rejectGuest, addEntry);
+router.get('/trials/:id/entries',       optionalAuth, listEntries);
+router.post('/trials/:id/entries',      auth, rejectGuest, addEntry);
+router.patch('/entries/:entryId',       auth, rejectGuest, updateEntry);
+router.delete('/entries/:entryId',      auth, rejectGuest, deleteEntry);
 
 // ── Events ────────────────────────────────────────────────────────────────────
 

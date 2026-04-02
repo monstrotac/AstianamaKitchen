@@ -680,13 +680,26 @@
 .s-entry.roll    .s-entry-type-label { color: #5c9; }
 .s-entry.verdict .s-entry-type-label { color: var(--bright-red); }
 
+.s-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
 .s-entry-author {
   font-size: 0.76rem;
   color: var(--dim);
   letter-spacing: 0.06em;
-  margin-bottom: 0.5rem;
   font-family: 'Share Tech Mono', monospace;
 }
+.s-entry-actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+.s-entry-actions .s-btn { font-size: 0.62rem; padding: 0.15rem 0.4rem; }
+.s-entry-edit { margin-top: 0.25rem; }
 
 .s-entry-body {
   font-size: 0.92rem;

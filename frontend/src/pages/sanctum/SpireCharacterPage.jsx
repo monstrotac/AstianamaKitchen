@@ -59,9 +59,9 @@ function StoryCard({story, charId, username, isOwn, onDelete}){
         </div>
         <div className="s-story-card-meta">
           <span className="s-story-date">{new Date(story.created_at).toLocaleDateString()}</span>
-          {isOwn&&<a className="s-btn small" href={`/characters/${charId}/stories/${story.id}/edit`}>Edit</a>}
+          {isOwn&&<Link className="s-btn small" to={`/characters/${charId}/stories/${story.id}/edit`}>✎ Edit</Link>}
           {isOwn&&<button className="s-btn small danger" onClick={()=>onDelete(story.id)}>Delete</button>}
-          <a className="s-btn small" href={`/characters/${charId}/stories/${story.id}`}>View →</a>
+          <Link className="s-btn small" to={`/characters/${charId}/stories/${story.id}`}>View →</Link>
         </div>
       </div>
       {isEmpty
@@ -279,25 +279,47 @@ export default function SpireCharacterPage() {
           </div>
           {reports.length === 0
             ? <div className="s-empty">No field reports on record for this subject.</div>
-            : reports.map(r => (
-              <div key={r.id} className="s-report-card" style={{ marginBottom: '0.5rem' }}>
-                <div className="s-report-header">
-                  <div className="s-report-meta">
-                    <span className="s-report-subject">◆ {r.subject}</span>
-                    <span className="s-report-title">{r.title}</span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem' }}>
-                    {r.author_name && (
-                      <span style={{ fontSize: '0.6rem', color: 'var(--dim)' }}>Filed by {r.author_name}</span>
-                    )}
-                    <span style={{ fontSize: '0.6rem', color: 'var(--dim)', fontFamily: "'Share Tech Mono',monospace" }}>
-                      {new Date(r.created_at).toLocaleDateString()}
-                    </span>
-                    <Link to={`/reports/${r.id}`} className="s-btn small" style={{ fontSize: '0.6rem' }}>View →</Link>
+            : reports.map(r => {
+              const canEditReport = isOwn || r.created_by === user?.id;
+              return (
+                <div key={r.id} className="s-report-card" style={{ marginBottom: '0.5rem' }}>
+                  <div className="s-report-header">
+                    <div className="s-report-meta">
+                      <span className="s-report-subject">◆ {r.subject}</span>
+                      <span className="s-report-title">{r.title}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem' }}>
+                      {r.author_name && (
+                        <span style={{ fontSize: '0.6rem', color: 'var(--dim)' }}>Filed by {r.author_name}</span>
+                      )}
+                      <span style={{ fontSize: '0.6rem', color: 'var(--dim)', fontFamily: "'Share Tech Mono',monospace" }}>
+                        {new Date(r.created_at).toLocaleDateString()}
+                      </span>
+                      <div style={{ display: 'flex', gap: '0.35rem' }}>
+                        {canEditReport && (
+                          <Link to={`/reports/${r.id}/edit`} className="s-btn small" style={{ fontSize: '0.6rem' }}>✎ Edit</Link>
+                        )}
+                        {canEditReport && (
+                          <button
+                            className="s-btn small danger"
+                            style={{ fontSize: '0.6rem' }}
+                            onClick={async () => {
+                              if (!window.confirm('Delete this report?')) return;
+                              try {
+                                const { deleteReport } = await import('../../api/sanctum');
+                                await deleteReport(r.id);
+                                loadReports();
+                              } catch {}
+                            }}
+                          >Delete</button>
+                        )}
+                        <Link to={`/reports/${r.id}`} className="s-btn small" style={{ fontSize: '0.6rem' }}>View →</Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           }
         </div>
       )}
