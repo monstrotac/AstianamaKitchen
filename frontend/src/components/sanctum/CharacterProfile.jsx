@@ -147,9 +147,9 @@ export default function CharacterProfile({ char, isOwn, canManage = false, onSav
               >
                 <option value="">— none —</option>
                 {masters
-                  .filter(m => m.user_id !== char.user_id)
+                  .filter(m => m.id !== char.id)
                   .map(m => (
-                    <option key={m.user_id} value={m.user_id}>{m.username} ({m.spire_rank})</option>
+                    <option key={m.id} value={m.id}>{m.character_name || m.username} ({m.spire_rank})</option>
                   ))
                 }
               </select>
@@ -256,8 +256,8 @@ export default function CharacterProfile({ char, isOwn, canManage = false, onSav
           {char.quote && (
             <blockquote className="s-profile-quote">"{char.quote}"</blockquote>
           )}
-          {char.master_username && (
-            <div className="s-profile-master">Master: {char.master_username}</div>
+          {char.master_character_name && (
+            <div className="s-profile-master">Master: {char.master_character_name}</div>
           )}
           {isOwn && (
             <button className="s-btn small" style={{ marginTop: '1rem' }} onClick={startEdit}>

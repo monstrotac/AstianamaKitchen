@@ -30,9 +30,9 @@ export default function CharacterCard({ char }) {
         <div style={{ fontSize: '0.65rem', marginTop: '0.3rem', opacity: 0.5, fontFamily: "'Share Tech Mono',monospace" }}>
           by {char.username}
         </div>
-        {char.master_username && (
+        {char.master_character_name && (
           <div style={{ fontSize: '0.65rem', marginTop: '0.15rem', opacity: 0.5 }}>
-            Master: {char.master_username}
+            Master: {char.master_character_name}
           </div>
         )}
       </div>

@@ -132,9 +132,9 @@ export default function CharacterSheet({ char, skills, editing = false, isOwn = 
                   </span>
                 )}
               </div>
-              {char.master_username && (
+              {char.master_character_name && (
                 <div className="s-master-line">
-                  Master: <Link to={`/characters/${char.master_user_id}`}>{char.master_username}</Link>
+                  Master: <Link to={`/characters/${char.master_character_id}`}>{char.master_character_name}</Link>
                 </div>
               )}
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', alignItems: 'center' }}>

@@ -48,10 +48,10 @@ async function getUserSpireRank(userId) {
 const CHAR_SELECT = `
   SELECT sc.*,
          u.username,
-         mu.username AS master_username, mu.id AS master_user_id
+         mc.character_name AS master_character_name, mc.id AS master_character_id, mc.user_id AS master_user_id
   FROM spire_characters sc
   JOIN users u ON u.id = sc.user_id
-  LEFT JOIN users mu ON mu.id = sc.master_id
+  LEFT JOIN spire_characters mc ON mc.id = sc.master_id
 `;
 
 // ── Characters ────────────────────────────────────────────────────────────────
@@ -207,15 +207,18 @@ async function updateCharacter(req, res) {
   const { charId } = req.params;
   const requesterId = req.user.sub;
 
-  // Permission: own character, master, or solstice
+  // Permission: own character, master (via character), or solstice
   const { rows: charRows } = await pool.query(
-    'SELECT user_id, master_id FROM spire_characters WHERE id=$1', [charId]
+    `SELECT sc.user_id, sc.master_id, mc.user_id AS master_user_id
+     FROM spire_characters sc
+     LEFT JOIN spire_characters mc ON mc.id = sc.master_id
+     WHERE sc.id=$1`, [charId]
   );
   if (!charRows[0]) return res.status(404).json({ error: 'Character not found' });
   const char = charRows[0];
 
   if (!isPrivileged(req.user.role, req.user.faction) && requesterId !== char.user_id) {
-    if (char.master_id !== requesterId) {
+    if (char.master_user_id !== requesterId) {
       return res.status(403).json({ error: 'Insufficient clearance' });
     }
   }
